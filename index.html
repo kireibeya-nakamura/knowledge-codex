@@ -57,8 +57,7 @@
     position: relative;
     width: min(1080px, 96vw); height: 620px;
     transform-style: preserve-3d;
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-    transition: transform 0.25s ease-out;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--s, 1));
   }
 
   .floor {
@@ -199,7 +198,7 @@
   @media (max-width: 760px) {
     body { overflow: auto; }
     .scene { position: static; perspective: 900px; display: block; padding: 64px 12px 24px; height: auto; min-height: 100%; }
-    .stage { width: 100%; height: auto; display: flex; flex-direction: column; gap: 16px; transform: none; }
+    .stage { width: 100%; height: auto; display: flex; flex-direction: column; gap: 16px; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); }
     .floor { position: fixed; top: auto; bottom: -46%; }
     .panel { position: static; width: 100% !important; margin: 0 !important; }
     #panel-archive { transform: rotateY(5deg); }
@@ -316,40 +315,87 @@
     particles.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
+      z: Math.random() * 0.8 + 0.2,
       r: Math.random() * 1.6 + 0.4,
       vy: -(Math.random() * 0.22 + 0.05),
       a: Math.random() * 0.5 + 0.15
     });
   }
-  function draw() {
+
+  var stage = document.getElementById('stage');
+  var targRx = 0, targRy = 0, curRx = 0, curRy = 0;
+  var lastInput = 0;
+
+  function fitStage() {
+    if (matchMedia('(min-width: 761px)').matches) {
+      var s = Math.min(1, (innerHeight - 90) / 660, (innerWidth - 32) / 1100);
+      stage.style.setProperty('--s', Math.max(0.45, s).toFixed(3));
+    } else {
+      stage.style.setProperty('--s', '1');
+    }
+  }
+  addEventListener('resize', fitStage);
+  fitStage();
+
+  addEventListener('pointermove', function (e) {
+    if (!matchMedia('(hover: hover)').matches) return;
+    lastInput = performance.now();
+    targRy = ((e.clientX / innerWidth) - 0.5) * 7;
+    targRx = ((e.clientY / innerHeight) - 0.5) * -5;
+  });
+
+  function onOrient(e) {
+    if (e.gamma == null && e.beta == null) return;
+    lastInput = performance.now();
+    var g = Math.max(-25, Math.min(25, e.gamma || 0));
+    var b = Math.max(-25, Math.min(25, (e.beta || 45) - 45));
+    targRy = g / 25 * 5;
+    targRx = b / 25 * -3;
+  }
+  if (!matchMedia('(hover: hover)').matches) {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      var askGyro = function () {
+        DeviceOrientationEvent.requestPermission().then(function (r) {
+          if (r === 'granted') addEventListener('deviceorientation', onOrient);
+        }).catch(function () {});
+        removeEventListener('touchend', askGyro);
+      };
+      addEventListener('touchend', askGyro);
+    } else {
+      addEventListener('deviceorientation', onOrient);
+    }
+  }
+
+  function draw(t) {
+    t = t || 0;
+    if (t - lastInput > 4000) {
+      targRy = Math.sin(t * 0.00035) * 2.2;
+      targRx = Math.cos(t * 0.00027) * 1.4;
+    }
+    curRx += (targRx - curRx) * 0.055;
+    curRy += (targRy - curRy) * 0.055;
+    stage.style.setProperty('--rx', curRx.toFixed(3) + 'deg');
+    stage.style.setProperty('--ry', curRy.toFixed(3) + 'deg');
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     var g = ctx.createRadialGradient(canvas.width/2, canvas.height*0.42, 40, canvas.width/2, canvas.height*0.42, canvas.width*0.7);
     g.addColorStop(0, 'rgba(20,60,90,0.28)');
     g.addColorStop(1, 'rgba(4,7,13,0)');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    var parX = curRy / 7, parY = curRx / 5;
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
       p.y += p.vy;
       if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.arc(p.x + parX * 46 * p.z, p.y - parY * 30 * p.z, p.r, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(127,232,255,' + p.a + ')';
       ctx.fill();
     }
     requestAnimationFrame(draw);
   }
-  draw();
-
-  var stage = document.getElementById('stage');
-  if (matchMedia('(hover: hover) and (min-width: 761px)').matches) {
-    addEventListener('pointermove', function (e) {
-      var ry = ((e.clientX / innerWidth) - 0.5) * 7;
-      var rx = ((e.clientY / innerHeight) - 0.5) * -5;
-      stage.style.setProperty('--ry', ry.toFixed(2) + 'deg');
-      stage.style.setProperty('--rx', rx.toFixed(2) + 'deg');
-    });
-  }
+  requestAnimationFrame(draw);
 
   var toast = document.getElementById('toast');
   var toastTimer = null;
