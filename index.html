@@ -287,6 +287,30 @@
   .loglist .log:last-child { border-bottom: none; }
   .loglist .log .d { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-right: 8px; }
 
+  .sec.proposal { border-style: dashed; border-color: rgba(255,217,138,0.45); }
+  .sec.proposal .shead { color: var(--amber); background: rgba(255,217,138,0.06); border-bottom-color: rgba(255,217,138,0.25); }
+  .pchip {
+    display: inline-block; font-size: 12px; color: var(--amber);
+    border: 1px dashed rgba(255,217,138,0.55); border-radius: 3px;
+    padding: 3px 10px; margin: 0 6px 6px 0; cursor: pointer; user-select: none;
+  }
+  .pchip.on { color: var(--cyan); border: 1px solid var(--line-bright); background: rgba(47,185,216,0.14); }
+  .pchip.have { color: var(--muted); border: 1px solid var(--line); cursor: default; }
+  .step {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; color: var(--cyan);
+    margin: 16px 0 8px;
+  }
+  .step .n {
+    width: 20px; height: 20px; flex: 0 0 20px; border: 1px solid var(--line-bright); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 11px;
+    box-shadow: 0 0 8px rgba(47,185,216,0.3);
+  }
+  .copybox { font-family: var(--mono); font-size: 11px; min-height: 140px; margin-top: 8px; }
+  .applyform { display: none; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .applyform.show { display: flex; }
+  .applyform input { flex: 1; min-width: 140px; }
+
   #toast {
     position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
     z-index: 40; opacity: 0; pointer-events: none;
@@ -643,15 +667,15 @@ function viewCapture() {
       '</div>' +
       '<div class="field"><label>LINK — 参考リンク</label><input type="url" id="f-link" placeholder="https://" autocomplete="off"></div>' +
     '</details>' +
-    '<div class="btnrow"><button class="btn primary" id="f-save">保存 ▸ REGISTER</button></div>' +
-    '<div class="hint">画像添付とAI整理はこのあとのバージョンで実装予定。保存後も続けて登録できます。</div>' +
+    '<div class="btnrow"><button class="btn primary" id="f-save">保存 ▸ REGISTER</button><button class="btn" id="f-save-ai">保存してAI整理 ▸</button></div>' +
+    '<div class="hint">保存後も続けて登録できます。画像添付はPhase 3で実装予定。</div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
       var lastCat = localStorage.getItem('kx-last-cat');
       if (lastCat) $('#f-cat', v).value = lastCat;
       $('#f-title', v).focus();
-      $('#f-save', v).addEventListener('click', function () {
+      function doSave(goAI) {
         var title = $('#f-title', v).value.trim();
         if (!title) { showToast('タイトルを入力してください'); $('#f-title', v).focus(); return; }
         var cat = $('#f-cat', v).value;
@@ -670,12 +694,15 @@ function viewCapture() {
         localStorage.setItem('kx-last-cat', cat);
         saveRecord(rec).then(function () {
           renderHome();
+          if (goAI) { location.hash = '#/ai/' + rec.id; return; }
           showToast('REGISTERED ▸ ' + rec.id + ' 「' + rec.title.slice(0, 14) + '」');
           $('#f-title', v).value = ''; $('#f-one', v).value = ''; $('#f-body', v).value = '';
           $('#f-tags', v).value = ''; $('#f-link', v).value = ''; $('#f-sub', v).value = '';
           $('#f-title', v).focus();
         });
-      });
+      }
+      $('#f-save', v).addEventListener('click', function () { doSave(false); });
+      $('#f-save-ai', v).addEventListener('click', function () { doSave(true); });
     });
   };
 }
@@ -755,7 +782,9 @@ function viewDetail(id) {
         '<div class="sec"><div class="shead">AI SUMMARY — 要約</div><div class="sbody">' + esc(r.ai.summary) + '</div></div>' +
         (r.ai.keyPoints && r.ai.keyPoints.length ? '<div class="sec"><div class="shead">KEY POINTS — 重要ポイント</div><div class="sbody"><ul>' + r.ai.keyPoints.map(function (k) { return '<li>' + esc(k) + '</li>'; }).join('') + '</ul></div></div>' : '') +
         (r.ai.terms && r.ai.terms.length ? '<div class="sec"><div class="shead">TERMS — 技術語</div><div class="sbody">' + r.ai.terms.map(function (t) { return '<div class="term"><b>' + esc(t.term) + '</b> — ' + esc(t.desc) + '</div>'; }).join('') + '</div></div>' : '') +
-        (r.ai.nextKeywords && r.ai.nextKeywords.length ? '<div class="sec"><div class="shead">NEXT — 次に調べる</div><div class="sbody">' + r.ai.nextKeywords.map(function (k) { return '<span class="tag" style="margin-right:6px;">' + esc(k) + '</span>'; }).join('') + '</div></div>' : '');
+        (r.ai.useCases && r.ai.useCases.length ? '<div class="sec"><div class="shead">USE CASES — 使える場面</div><div class="sbody"><ul>' + r.ai.useCases.map(function (k) { return '<li>' + esc(k) + '</li>'; }).join('') + '</ul></div></div>' : '') +
+        (r.ai.nextKeywords && r.ai.nextKeywords.length ? '<div class="sec"><div class="shead">NEXT — 次に調べる</div><div class="sbody">' + r.ai.nextKeywords.map(function (k) { return '<span class="tag" style="margin-right:6px;">' + esc(k) + '</span>'; }).join('') + '</div></div>' : '') +
+        (r.ai.nextExperiments && r.ai.nextExperiments.length ? '<div class="sec"><div class="shead">EXPERIMENTS — 次に試す検証</div><div class="sbody"><ul>' + r.ai.nextExperiments.map(function (k) { return '<li>' + esc(k) + '</li>'; }).join('') + '</ul></div></div>' : '');
     } else {
       aiHtml = '<div class="sec"><div class="shead">AI ANALYSIS</div><div class="sbody dim">AI整理はまだ実行されていません（Phase 2で実装予定）</div></div>';
     }
@@ -779,11 +808,21 @@ function viewDetail(id) {
       '<div class="sec"><div class="shead">MEMO — 自分のメモ</div><div class="sbody">' + (r.body ? esc(r.body) : '<span class="dim" style="color:var(--muted);">（本文メモなし — 編集で追加できます）</span>') + '</div></div>' +
       (links ? '<div class="sec"><div class="shead">LINKS — 参考リンク</div><div class="sbody">' + links + '</div></div>' : '') +
       aiHtml +
-      (logs ? '<div class="sec"><div class="shead">APPEND LOG — 追記</div><div class="sbody loglist">' + logs + '</div></div>' : '') +
+      '<div class="sec"><div class="shead">APPEND LOG — 追記（日付つきで積み上がります）</div><div class="sbody loglist">' + logs +
+        '<div style="margin-top:8px; display:flex; gap:8px;"><input type="text" id="ap-text" placeholder="追記メモ…" style="flex:1;"><button class="btn" id="ap-add">追記</button></div>' +
+      '</div></div>' +
       (used ? '<div class="sec"><div class="shead">USED IN — 使用履歴</div><div class="sbody loglist">' + used + '</div></div>' : '') +
       '<div class="btnrow">' +
+        '<button class="btn primary" id="d-ai">⚡ AI整理' + (r.ai && r.ai.summary ? '（再整理）' : '') + '</button>' +
         '<button class="btn" id="d-edit">✎ 編集</button>' +
+        (r.status !== 'archived' ? '<button class="btn" id="d-apply">✔ 使用済にする</button>' : '') +
+        '<button class="btn" id="d-arch">' + (r.status === 'archived' ? '⬆ 復帰' : '📦 アーカイブ') + '</button>' +
         '<button class="btn danger" id="d-del">削除</button>' +
+      '</div>' +
+      '<div class="applyform" id="apply-form">' +
+        '<input type="text" id="a-proj" placeholder="使ったプロジェクト名 *">' +
+        '<input type="text" id="a-note" placeholder="どう使ったか（任意）">' +
+        '<button class="btn primary" id="a-ok">記録する</button>' +
       '</div>' +
       '</div></div>';
 
@@ -805,7 +844,212 @@ function viewDetail(id) {
         });
       });
       $('#d-edit', v).addEventListener('click', function () { renderEdit(r); });
+      $('#d-ai', v).addEventListener('click', function () { location.hash = '#/ai/' + r.id; });
+      var applyBtn = $('#d-apply', v);
+      if (applyBtn) {
+        applyBtn.addEventListener('click', function () {
+          $('#apply-form', v).classList.toggle('show');
+          $('#a-proj', v).focus();
+        });
+        $('#a-ok', v).addEventListener('click', function () {
+          var proj = $('#a-proj', v).value.trim();
+          if (!proj) { showToast('プロジェクト名を入力してください'); return; }
+          r.usedIn = r.usedIn || [];
+          r.usedIn.push({ project: proj, date: today(), note: $('#a-note', v).value.trim() });
+          r.status = 'applied';
+          saveRecord(r).then(function () {
+            renderHome();
+            showToast('APPLIED ▸ ' + r.id + ' 実戦投入を記録しました');
+            viewDetail(r.id)();
+          });
+        });
+      }
+      $('#d-arch', v).addEventListener('click', function () {
+        if (r.status === 'archived') {
+          r.status = (r.usedIn && r.usedIn.length) ? 'applied' : (r.ai && r.ai.summary) ? 'enriched' : 'captured';
+        } else {
+          r.status = 'archived';
+        }
+        saveRecord(r).then(function () {
+          renderHome();
+          showToast(r.status === 'archived' ? 'ARCHIVED ▸ ' + r.id : 'RESTORED ▸ ' + r.id);
+          viewDetail(r.id)();
+        });
+      });
+      $('#ap-add', v).addEventListener('click', function () {
+        var text = $('#ap-text', v).value.trim();
+        if (!text) { showToast('追記の内容を入力してください'); return; }
+        r.appendLog = r.appendLog || [];
+        r.appendLog.push({ date: today(), text: text });
+        saveRecord(r).then(function () {
+          showToast('APPENDED ▸ ' + r.id);
+          viewDetail(r.id)();
+        });
+      });
     });
+  };
+}
+
+/* ---------- AI analysis (Phase 2: copy & paste flow) ---------- */
+function buildPrompt(r) {
+  var lines = [];
+  lines.push('あなたは制作知識を整理するアシスタントです。以下の知識メモを分析し、指定のJSON形式「だけ」を出力してください。前後の説明文やコードフェンスは不要です。');
+  lines.push('');
+  lines.push('【知識メモ】');
+  lines.push('タイトル: ' + r.title);
+  if (r.oneLiner) lines.push('一言メモ: ' + r.oneLiner);
+  if (r.body) lines.push('本文: ' + r.body);
+  lines.push('カテゴリ: ' + (r.category || '未分類'));
+  lines.push('タグ: ' + ((r.tags || []).join(', ') || 'なし'));
+  lines.push('');
+  var tags = allTags();
+  if (tags.length) {
+    lines.push('【既存タグ一覧（suggestedTagsはなるべくここから選ぶ。適切なものが無ければ新規でも可）】');
+    lines.push(tags.join(', '));
+    lines.push('');
+  }
+  lines.push('【カテゴリ大分類（suggestedCategoryは「大分類/中分類」の形式で）】');
+  lines.push(CATS.join(' / '));
+  lines.push('');
+  lines.push('【出力形式（このJSONのみを出力）】');
+  lines.push(JSON.stringify({
+    summary: '2〜3文の要約',
+    keyPoints: ['重要ポイントを3〜5個'],
+    terms: [{ term: '技術語', desc: '1文の説明' }],
+    useCases: ['この知識が使える場面'],
+    nextKeywords: ['次に調べるキーワード'],
+    nextExperiments: ['次に試す検証'],
+    suggestedTags: ['タグ案を最大5個'],
+    suggestedCategory: '大分類/中分類',
+    importance: 2
+  }, null, 2));
+  return lines.join('\n');
+}
+function parseAIJson(text) {
+  var t = String(text || '').trim();
+  t = t.replace(/^```[a-zA-Z]*\s*/, '').replace(/```\s*$/, '');
+  var a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a < 0 || b <= a) throw new Error('JSONが見つかりません');
+  var o = JSON.parse(t.slice(a, b + 1));
+  if (typeof o.summary !== 'string' || !o.summary) throw new Error('summary がありません');
+  ['keyPoints', 'useCases', 'nextKeywords', 'nextExperiments', 'suggestedTags'].forEach(function (k) {
+    o[k] = Array.isArray(o[k]) ? o[k].map(String) : [];
+  });
+  o.terms = (Array.isArray(o.terms) ? o.terms : []).map(function (x) {
+    return { term: String((x && x.term) || ''), desc: String((x && x.desc) || '') };
+  }).filter(function (x) { return x.term; });
+  o.suggestedCategory = String(o.suggestedCategory || '');
+  o.importance = Math.min(3, Math.max(1, parseInt(o.importance, 10) || 2));
+  return o;
+}
+function viewAI(id) {
+  return function () {
+    var r = byId(id);
+    if (!r) { showToast('RECORD NOT FOUND: ' + id); location.hash = '#/list'; return; }
+    var st = { parsed: null, sel: {}, useCat: true, useImp: true };
+    var prompt = buildPrompt(r);
+    var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+      vhead('AI ANALYSIS ' + esc(r.id), 'AI整理 — コピー → AIに貼る → 返答を貼り戻す') +
+      '<div class="vbody">' +
+      '<div class="sec"><div class="shead">SOURCE — 元メモ</div><div class="sbody" style="font-size:12px;"><b>' + esc(r.title) + '</b>' + (r.oneLiner ? '<br>' + esc(r.oneLiner) : '') + '</div></div>' +
+      '<div class="step"><span class="n">1</span>整理プロンプトをコピーして Claude / ChatGPT に貼る</div>' +
+      '<div class="btnrow" style="margin-top:0;"><button class="btn primary" id="ai-copy">📋 プロンプトをコピー</button></div>' +
+      '<details class="adv"><summary>プロンプトを表示（手動コピー用）</summary><textarea class="copybox" id="ai-prompt" readonly>' + esc(prompt) + '</textarea></details>' +
+      '<div class="step"><span class="n">2</span>AIの返答（JSON）を下に貼り付けて取り込む</div>' +
+      '<div class="field"><textarea id="ai-paste" placeholder="AIの返答をそのまま貼り付け（JSON以外が混ざっていてもOK）"></textarea></div>' +
+      '<div class="btnrow" style="margin-top:0;"><button class="btn primary" id="ai-parse">取り込む ▸ ANALYZE</button></div>' +
+      '<div id="ai-result"></div>' +
+      '</div></div>';
+    openView(html, function (v) {
+      $('#ai-copy', v).addEventListener('click', function () {
+        function fallback() {
+          var d = $('details.adv', v);
+          d.open = true;
+          var ta = $('#ai-prompt', v);
+          ta.focus(); ta.select();
+          var ok = false;
+          try { ok = document.execCommand('copy'); } catch (e) {}
+          showToast(ok ? 'COPIED ▸ AIに貼り付けてください' : '自動コピー不可 — 表示中のプロンプトを手動でコピーしてください');
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(prompt).then(function () {
+            showToast('COPIED ▸ AIに貼り付けてください');
+          }, fallback);
+        } else { fallback(); }
+      });
+      $('#ai-parse', v).addEventListener('click', function () {
+        var parsed;
+        try { parsed = parseAIJson($('#ai-paste', v).value); }
+        catch (e) { showToast('取り込み失敗: ' + e.message); return; }
+        st.parsed = parsed;
+        st.sel = {};
+        parsed.suggestedTags.forEach(function (t) {
+          if ((r.tags || []).indexOf(t) < 0) st.sel[t] = true;
+        });
+        st.useCat = !!(parsed.suggestedCategory && parsed.suggestedCategory !== r.category);
+        st.useImp = parsed.importance !== r.importance;
+        renderResult(v);
+        $('#ai-result', v).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+    function renderResult(v) {
+      var p = st.parsed;
+      function li(x) { return '<li>' + esc(x) + '</li>'; }
+      var tagChips = p.suggestedTags.map(function (t) {
+        var have = (r.tags || []).indexOf(t) >= 0;
+        if (have) return '<span class="pchip have">' + esc(t) + ' ✓済</span>';
+        return '<span class="pchip' + (st.sel[t] ? ' on' : '') + '" data-ptag="' + esc(t) + '">+ ' + esc(t) + '</span>';
+      }).join('');
+      var box = $('#ai-result', v);
+      box.innerHTML =
+        '<div class="step"><span class="n">3</span>提案を確認して採用 — 点線＝AIの提案、チップはタップで採用/解除</div>' +
+        '<div class="sec proposal"><div class="shead">SUMMARY — 要約</div><div class="sbody">' + esc(p.summary) + '</div></div>' +
+        (p.keyPoints.length ? '<div class="sec proposal"><div class="shead">KEY POINTS — 重要ポイント</div><div class="sbody"><ul>' + p.keyPoints.map(li).join('') + '</ul></div></div>' : '') +
+        (p.terms.length ? '<div class="sec proposal"><div class="shead">TERMS — 技術語</div><div class="sbody">' + p.terms.map(function (t) { return '<div class="term"><b>' + esc(t.term) + '</b> — ' + esc(t.desc) + '</div>'; }).join('') + '</div></div>' : '') +
+        (p.useCases.length ? '<div class="sec proposal"><div class="shead">USE CASES — 使える場面</div><div class="sbody"><ul>' + p.useCases.map(li).join('') + '</ul></div></div>' : '') +
+        (p.nextKeywords.length ? '<div class="sec proposal"><div class="shead">NEXT — 次に調べる</div><div class="sbody">' + p.nextKeywords.map(function (k) { return '<span class="tag" style="margin-right:6px;">' + esc(k) + '</span>'; }).join('') + '</div></div>' : '') +
+        (p.nextExperiments.length ? '<div class="sec proposal"><div class="shead">EXPERIMENTS — 次に試す検証</div><div class="sbody"><ul>' + p.nextExperiments.map(li).join('') + '</ul></div></div>' : '') +
+        (p.suggestedTags.length ? '<div class="sec proposal"><div class="shead">TAG PROPOSALS — タグ案</div><div class="sbody">' + tagChips + '</div></div>' : '') +
+        '<div class="sec proposal"><div class="shead">META PROPOSALS — 分類・重要度の提案</div><div class="sbody">' +
+          (p.suggestedCategory ? '<span class="pchip' + (st.useCat ? ' on' : '') + '" data-pmeta="cat">カテゴリ: ' + esc(p.suggestedCategory) + '</span>' : '') +
+          '<span class="pchip' + (st.useImp ? ' on' : '') + '" data-pmeta="imp">重要度: ' + '◆◆◆'.slice(0, p.importance) + '◇◇◇'.slice(0, 3 - p.importance) + '</span>' +
+        '</div></div>' +
+        '<div class="btnrow"><button class="btn primary" id="ai-adopt">採用して保存 ▸ ' + (r.status === 'captured' ? 'AI整理済へ' : '保存') + '</button></div>';
+      box.addEventListener('click', function (e) {
+        var tagEl = e.target.closest('[data-ptag]');
+        if (tagEl) {
+          var t = tagEl.dataset.ptag;
+          st.sel[t] = !st.sel[t];
+          tagEl.classList.toggle('on', !!st.sel[t]);
+          return;
+        }
+        var metaEl = e.target.closest('[data-pmeta]');
+        if (metaEl) {
+          if (metaEl.dataset.pmeta === 'cat') { st.useCat = !st.useCat; metaEl.classList.toggle('on', st.useCat); }
+          else { st.useImp = !st.useImp; metaEl.classList.toggle('on', st.useImp); }
+        }
+      });
+      $('#ai-adopt', box).addEventListener('click', function () {
+        r.ai = {
+          summary: p.summary, keyPoints: p.keyPoints, terms: p.terms,
+          useCases: p.useCases, nextKeywords: p.nextKeywords, nextExperiments: p.nextExperiments,
+          suggestedTags: p.suggestedTags, suggestedCategory: p.suggestedCategory,
+          relatedIds: (r.ai && r.ai.relatedIds) || []
+        };
+        r.tags = r.tags || [];
+        Object.keys(st.sel).forEach(function (t) {
+          if (st.sel[t] && r.tags.indexOf(t) < 0) r.tags.push(t);
+        });
+        if (st.useCat && p.suggestedCategory) r.category = p.suggestedCategory;
+        if (st.useImp) r.importance = p.importance;
+        if (r.status === 'captured') r.status = 'enriched';
+        saveRecord(r).then(function () {
+          renderHome();
+          showToast('ENRICHED ▸ ' + r.id + ' AI整理を保存しました');
+          location.hash = '#/detail/' + r.id;
+        });
+      });
+    }
   };
 }
 function renderEdit(r) {
@@ -865,7 +1109,7 @@ function viewSettings() {
         '<input type="file" id="s-file" accept=".json,application/json" style="display:none;">' +
       '</div>' +
     '</div></div>' +
-    '<div class="sec"><div class="shead">INFO</div><div class="sbody dim">Knowledge Codex — Phase 1<br>登録・一覧・詳細・検索・お気に入り・バックアップまで実装済み。<br>次: AI整理（Phase 2）→ 画像添付・用語集（Phase 3）</div></div>' +
+    '<div class="sec"><div class="shead">INFO</div><div class="sbody dim">Knowledge Codex — Phase 2<br>登録・一覧・詳細・検索・AI整理（コピペ方式）・追記ログ・使用履歴・アーカイブまで実装済み。<br>次: 画像添付・用語集（Phase 3）</div></div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
@@ -916,6 +1160,7 @@ function route() {
   if (h.indexOf('#/capture') === 0) { viewCapture()(); return; }
   if (h.indexOf('#/list') === 0) { viewList(parseQuery(h))(); return; }
   if ((m = h.match(/^#\/detail\/([A-Za-z]+-\d+)/))) { viewDetail(m[1])(); return; }
+  if ((m = h.match(/^#\/ai\/([A-Za-z]+-\d+)/))) { viewAI(m[1])(); return; }
   if (h.indexOf('#/settings') === 0) { viewSettings()(); return; }
   closeView(); renderHome();
 }
