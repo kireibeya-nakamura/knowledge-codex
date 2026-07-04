@@ -8,6 +8,7 @@ Claude/Codex引き継ぎ用。変更したら必ずここに記録する。
 - 旧方式（Jekyll legacy）のPagesビルドが不調（pushごとに built/errored が交互、v5が50分以上未反映）→ `.nojekyll` を追加してJekyll処理をスキップ
 - Actions方式（workflow）への切替も試みたが、**保存済みトークンに `workflow` スコープがなく、ワークフローファイルはpushできない**（今後Actionsデプロイにしたい場合は github.com/settings/tokens でトークンに workflow スコープを追加すること）
 - 結論: legacy方式のまま `.nojekyll` で運用。ビルドが詰まったら API で `POST /repos/{owner}/{repo}/pages/builds` を叩いて再ビルド要求
+- **追記（同日）**: legacyが1時間近く詰まり続けたため、ユーザーがトークンに workflow スコープを追加 → **Actions方式（.github/workflows/pages.yml）に正式切替**。以後のデプロイは main への push で自動実行。状況は https://github.com/kireibeya-nakamura/knowledge-codex/actions で確認
 
 ## v5 — 2026-07-04 【スマホ横持ちの改善】
 
