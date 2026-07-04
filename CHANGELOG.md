@@ -3,6 +3,14 @@
 Claude/Codex引き継ぎ用。変更したら必ずここに記録する。
 携帯確認URL: https://kireibeya-nakamura.github.io/knowledge-codex/?v=N （Nは毎回上げる）
 
+## v7 — 2026-07-04 【AI整理のアプリ内完結（Claude API直接連携）】
+
+- **設定画面にClaude API連携を追加**: APIキー（localStorage `kx-api-key`）とモデル選択（`kx-ai-model`、Opus 4.8 / Sonnet 5 / Haiku 4.5）。キーは端末のブラウザにのみ保存
+- **AI整理画面を再構成**: キーがあれば「⚡ AIで整理する」ワンタップ実行（ANALYZING…表示→提案パネル）。コピペ方式は折りたたみに残置（キーなしでも従来通り使える）
+- **API呼び出し**: `fetch` で `api.anthropic.com/v1/messages` を直接叩く（`anthropic-dangerous-direct-browser-access` ヘッダ）。**structured outputs（`output_config.format` + JSONスキーマ）で返答形式を強制**するため、返答のブレ・パース失敗が原理的に起きない
+- エラーは日本語で表示（401=キー無効 / 429=レート制限 / 529=過負荷 / refusal）
+- 検証: 偽キーでブラウザ→Anthropic APIの疎通と401エラー経路を確認（CORS通過OK）。キーなし状態・コピペ方式・提案採用も再確認済み
+
 ## v6 — 2026-07-04 【Phase 2 完了: AI整理】
 
 - **AI整理画面**（#/ai/KX-nnnn、コピペ方式）: STEP1 整理プロンプトをコピー（既存タグ一覧・カテゴリ大分類・出力JSONスキーマを含む）→ STEP2 AIの返答を貼り付けて取り込み（コードフェンス・前後の文章が混ざっていてもJSON部分を抽出）→ STEP3 提案の確認と採用

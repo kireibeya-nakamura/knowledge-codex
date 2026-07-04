@@ -942,29 +942,142 @@ function parseAIJson(text) {
   o.importance = Math.min(3, Math.max(1, parseInt(o.importance, 10) || 2));
   return o;
 }
+var AI_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['summary', 'keyPoints', 'terms', 'useCases', 'nextKeywords', 'nextExperiments', 'suggestedTags', 'suggestedCategory', 'importance'],
+  properties: {
+    summary: { type: 'string', description: '2〜3文の要約' },
+    keyPoints: { type: 'array', items: { type: 'string' }, description: '重要ポイント3〜5個' },
+    terms: {
+      type: 'array',
+      items: {
+        type: 'object', additionalProperties: false, required: ['term', 'desc'],
+        properties: { term: { type: 'string' }, desc: { type: 'string', description: '1文の説明' } }
+      },
+      description: '技術語とその説明'
+    },
+    useCases: { type: 'array', items: { type: 'string' }, description: 'この知識が使える場面' },
+    nextKeywords: { type: 'array', items: { type: 'string' }, description: '次に調べるキーワード' },
+    nextExperiments: { type: 'array', items: { type: 'string' }, description: '次に試す検証' },
+    suggestedTags: { type: 'array', items: { type: 'string' }, description: 'タグ案（最大5個、既存タグ優先）' },
+    suggestedCategory: { type: 'string', description: '「大分類/中分類」形式' },
+    importance: { type: 'integer', enum: [1, 2, 3], description: '重要度' }
+  }
+};
+function callClaude(r) {
+  var key = localStorage.getItem('kx-api-key');
+  var model = localStorage.getItem('kx-ai-model') || 'claude-opus-4-8';
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: model,
+      max_tokens: 8192,
+      system: 'あなたはクリエイター（CG・コーディング学習中の絵描き）の制作知識を整理するアシスタントです。日本語で、具体的かつ実践的に。一般論より、このメモの文脈に即した内容を返してください。',
+      output_config: { format: { type: 'json_schema', schema: AI_SCHEMA } },
+      messages: [{ role: 'user', content: buildPrompt(r) }]
+    })
+  }).then(function (res) {
+    if (!res.ok) {
+      return res.json().catch(function () { return {}; }).then(function (e) {
+        var msg = (e.error && e.error.message) || ('HTTP ' + res.status);
+        if (res.status === 401) msg = 'APIキーが無効です — 設定画面で確認してください';
+        else if (res.status === 429) msg = 'レート制限中 — 少し待って再実行してください';
+        else if (res.status === 529) msg = 'API過負荷 — 少し待って再実行してください';
+        throw new Error(msg);
+      });
+    }
+    return res.json();
+  }).then(function (data) {
+    if (data.stop_reason === 'refusal') throw new Error('AIが応答を拒否しました');
+    var text = '';
+    (data.content || []).forEach(function (b) { if (b.type === 'text') text += b.text; });
+    if (!text) throw new Error('応答が空でした');
+    return text;
+  });
+}
 function viewAI(id) {
   return function () {
     var r = byId(id);
     if (!r) { showToast('RECORD NOT FOUND: ' + id); location.hash = '#/list'; return; }
     var st = { parsed: null, sel: {}, useCat: true, useImp: true };
     var prompt = buildPrompt(r);
+    var hasKey = !!localStorage.getItem('kx-api-key');
+    var model = localStorage.getItem('kx-ai-model') || 'claude-opus-4-8';
+    var directHtml = hasKey
+      ? '<div class="step"><span class="n">1</span>ワンタップでAI整理 — ' + esc(model) + '</div>' +
+        '<div class="btnrow" style="margin-top:0;align-items:center;"><button class="btn primary" id="ai-run">⚡ AIで整理する</button><span id="ai-status" style="font-family:var(--mono);font-size:11px;letter-spacing:1px;color:var(--cyan-dim);"></span></div>'
+      : '<div class="sec"><div class="shead">SETUP — アプリ内AI整理（推奨）</div><div class="sbody dim">設定画面でClaude APIキーを登録すると、コピペなしのワンタップでAI整理できます。' +
+        '<div class="btnrow"><button class="btn" id="ai-goto-settings">⚙ 設定を開く</button></div></div></div>';
+    var pasteHtml =
+      '<details class="adv"' + (hasKey ? '' : ' open') + '><summary>コピペ方式（APIキーなしで使う）</summary>' +
+        '<div class="step"><span class="n">A</span>整理プロンプトをコピーして Claude / ChatGPT に貼る</div>' +
+        '<div class="btnrow" style="margin-top:0;"><button class="btn" id="ai-copy">📋 プロンプトをコピー</button></div>' +
+        '<details class="adv"><summary>プロンプトを表示（手動コピー用）</summary><textarea class="copybox" id="ai-prompt" readonly>' + esc(prompt) + '</textarea></details>' +
+        '<div class="step"><span class="n">B</span>AIの返答（JSON）を下に貼り付けて取り込む</div>' +
+        '<div class="field"><textarea id="ai-paste" placeholder="AIの返答をそのまま貼り付け（JSON以外が混ざっていてもOK）"></textarea></div>' +
+        '<div class="btnrow" style="margin-top:0;"><button class="btn" id="ai-parse">取り込む ▸ ANALYZE</button></div>' +
+      '</details>';
     var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
-      vhead('AI ANALYSIS ' + esc(r.id), 'AI整理 — コピー → AIに貼る → 返答を貼り戻す') +
+      vhead('AI ANALYSIS ' + esc(r.id), 'AI整理') +
       '<div class="vbody">' +
       '<div class="sec"><div class="shead">SOURCE — 元メモ</div><div class="sbody" style="font-size:12px;"><b>' + esc(r.title) + '</b>' + (r.oneLiner ? '<br>' + esc(r.oneLiner) : '') + '</div></div>' +
-      '<div class="step"><span class="n">1</span>整理プロンプトをコピーして Claude / ChatGPT に貼る</div>' +
-      '<div class="btnrow" style="margin-top:0;"><button class="btn primary" id="ai-copy">📋 プロンプトをコピー</button></div>' +
-      '<details class="adv"><summary>プロンプトを表示（手動コピー用）</summary><textarea class="copybox" id="ai-prompt" readonly>' + esc(prompt) + '</textarea></details>' +
-      '<div class="step"><span class="n">2</span>AIの返答（JSON）を下に貼り付けて取り込む</div>' +
-      '<div class="field"><textarea id="ai-paste" placeholder="AIの返答をそのまま貼り付け（JSON以外が混ざっていてもOK）"></textarea></div>' +
-      '<div class="btnrow" style="margin-top:0;"><button class="btn primary" id="ai-parse">取り込む ▸ ANALYZE</button></div>' +
+      directHtml +
+      pasteHtml +
       '<div id="ai-result"></div>' +
       '</div></div>';
     openView(html, function (v) {
+      function showParsed(parsed) {
+        st.parsed = parsed;
+        st.sel = {};
+        parsed.suggestedTags.forEach(function (t) {
+          if ((r.tags || []).indexOf(t) < 0) st.sel[t] = true;
+        });
+        st.useCat = !!(parsed.suggestedCategory && parsed.suggestedCategory !== r.category);
+        st.useImp = parsed.importance !== r.importance;
+        renderResult(v);
+        $('#ai-result', v).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      var runBtn = $('#ai-run', v);
+      if (runBtn) {
+        runBtn.addEventListener('click', function () {
+          var statusEl = $('#ai-status', v);
+          runBtn.disabled = true;
+          runBtn.style.opacity = '0.5';
+          var dots = 0;
+          statusEl.textContent = 'ANALYZING';
+          var timer = setInterval(function () {
+            dots = (dots + 1) % 4;
+            statusEl.textContent = 'ANALYZING' + '…'.repeat(dots) + ' 解析中';
+          }, 400);
+          function done() {
+            clearInterval(timer);
+            runBtn.disabled = false;
+            runBtn.style.opacity = '';
+          }
+          callClaude(r).then(function (text) {
+            var parsed = parseAIJson(text);
+            done();
+            statusEl.textContent = 'COMPLETE ▸ 提案を確認してください';
+            showParsed(parsed);
+          }).catch(function (e) {
+            done();
+            statusEl.textContent = 'ERROR';
+            showToast('AI整理に失敗: ' + e.message);
+          });
+        });
+      }
+      var gotoBtn = $('#ai-goto-settings', v);
+      if (gotoBtn) gotoBtn.addEventListener('click', function () { location.hash = '#/settings'; });
       $('#ai-copy', v).addEventListener('click', function () {
         function fallback() {
-          var d = $('details.adv', v);
-          d.open = true;
+          [].forEach.call(v.querySelectorAll('details.adv'), function (d) { d.open = true; });
           var ta = $('#ai-prompt', v);
           ta.focus(); ta.select();
           var ok = false;
@@ -981,15 +1094,7 @@ function viewAI(id) {
         var parsed;
         try { parsed = parseAIJson($('#ai-paste', v).value); }
         catch (e) { showToast('取り込み失敗: ' + e.message); return; }
-        st.parsed = parsed;
-        st.sel = {};
-        parsed.suggestedTags.forEach(function (t) {
-          if ((r.tags || []).indexOf(t) < 0) st.sel[t] = true;
-        });
-        st.useCat = !!(parsed.suggestedCategory && parsed.suggestedCategory !== r.category);
-        st.useImp = parsed.importance !== r.importance;
-        renderResult(v);
-        $('#ai-result', v).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showParsed(parsed);
       });
     });
     function renderResult(v) {
@@ -1101,6 +1206,17 @@ function viewSettings() {
   var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
     vhead('SETTINGS', '設定・バックアップ') +
     '<div class="vbody">' +
+    '<div class="sec"><div class="shead">AI — Claude API 連携</div><div class="sbody">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">APIキーを設定すると、AI整理がコピペなしでアプリ内で完結します。キーはこの端末のブラウザ（localStorage）にのみ保存され、送信先はAnthropic APIだけです。キーは console.anthropic.com で発行できます。</div>' +
+      '<div class="field"><label>API KEY</label><input type="password" id="s-key" placeholder="sk-ant-api03-..." autocomplete="off"></div>' +
+      '<div class="field"><label>MODEL — 整理に使うモデル</label><select id="s-model">' +
+        '<option value="claude-opus-4-8">Opus 4.8 — 最高品質（1回 数円）</option>' +
+        '<option value="claude-sonnet-5">Sonnet 5 — バランス（1回 1〜3円）</option>' +
+        '<option value="claude-haiku-4-5">Haiku 4.5 — 速い・安い（1回 1円以下）</option>' +
+      '</select></div>' +
+      '<div class="btnrow" style="margin-top:0;"><button class="btn primary" id="s-save-ai">保存</button><button class="btn danger" id="s-clear-ai">キーを削除</button></div>' +
+      '<div class="hint" id="s-key-status"></div>' +
+    '</div></div>' +
     '<div class="sec"><div class="shead">BACKUP — JSONエクスポート / インポート</div><div class="sbody">' +
       '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">データはこの端末のブラウザ（IndexedDB）に保存されています。定期的にエクスポートしてバックアップしてください。UE版はこのJSONを読み込みます。</div>' +
       '<div class="btnrow" style="margin-top:0;">' +
@@ -1113,6 +1229,29 @@ function viewSettings() {
     '</div></div>';
   return function () {
     openView(html, function (v) {
+      function keyStatus() {
+        var k = localStorage.getItem('kx-api-key');
+        $('#s-key-status', v).textContent = k
+          ? 'STATUS: キー設定済み（' + k.slice(0, 14) + '…） / MODEL: ' + (localStorage.getItem('kx-ai-model') || 'claude-opus-4-8')
+          : 'STATUS: キー未設定 — AI整理はコピペ方式で動作します';
+      }
+      $('#s-key', v).value = localStorage.getItem('kx-api-key') || '';
+      $('#s-model', v).value = localStorage.getItem('kx-ai-model') || 'claude-opus-4-8';
+      keyStatus();
+      $('#s-save-ai', v).addEventListener('click', function () {
+        var k = $('#s-key', v).value.trim();
+        if (k) localStorage.setItem('kx-api-key', k);
+        else localStorage.removeItem('kx-api-key');
+        localStorage.setItem('kx-ai-model', $('#s-model', v).value);
+        keyStatus();
+        showToast(k ? 'AI SETTINGS SAVED ▸ アプリ内AI整理が有効です' : 'モデル設定を保存しました（キー未設定）');
+      });
+      $('#s-clear-ai', v).addEventListener('click', function () {
+        localStorage.removeItem('kx-api-key');
+        $('#s-key', v).value = '';
+        keyStatus();
+        showToast('APIキーを削除しました');
+      });
       $('#s-export', v).addEventListener('click', function () {
         var blob = new Blob([JSON.stringify({ app: 'knowledge-codex', exportedAt: new Date().toISOString(), records: state.records }, null, 2)], { type: 'application/json' });
         var a = document.createElement('a');
