@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Knowledge Codex</title>
+<style>
+  :root {
+    --bg: #060b14;
+    --panel: #0a1626;
+    --line: #1b3a52;
+    --line-bright: #2fb9d8;
+    --cyan: #7fe8ff;
+    --cyan-dim: #5fc9e8;
+    --text: #d8f4ff;
+    --muted: #4d7d9c;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .panel {
+    width: 100%;
+    max-width: 420px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px 24px;
+    box-shadow: 0 0 24px rgba(47, 185, 216, 0.12), inset 0 0 32px rgba(47, 185, 216, 0.04);
+  }
+  .brand {
+    font-family: Consolas, "Courier New", monospace;
+    color: var(--cyan);
+    font-size: 20px;
+    letter-spacing: 3px;
+  }
+  .sub {
+    font-family: Consolas, "Courier New", monospace;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-top: 6px;
+  }
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-bright), transparent);
+    margin: 18px 0;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    color: var(--cyan-dim);
+    padding: 5px 0;
+  }
+  .row span:last-child { color: var(--cyan); }
+  .status {
+    display: inline-block;
+    margin-top: 18px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    border: 1px solid var(--line-bright);
+    border-radius: 6px;
+    padding: 6px 12px;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 4px rgba(127, 232, 255, 0.15); }
+    50% { box-shadow: 0 0 14px rgba(127, 232, 255, 0.45); }
+  }
+  .note { color: var(--muted); font-size: 12px; margin-top: 16px; line-height: 1.7; }
+</style>
+</head>
+<body>
+  <main class="panel">
+    <div class="brand">KNOWLEDGE CODEX</div>
+    <div class="sub">CREATOR'S KNOWLEDGE DATABASE // v1</div>
+    <div class="divider"></div>
+    <div class="row"><span>RECORDS</span><span>0</span></div>
+    <div class="row"><span>TERMS</span><span>0</span></div>
+    <div class="row"><span>PHASE</span><span>1 — SETUP</span></div>
+    <div class="status">SYSTEM ONLINE</div>
+    <p class="note">GitHub Pages 動作確認用の起動画面です。ここから Phase 1（登録 → 一覧 → 詳細）を実装していきます。</p>
+  </main>
+</body>
+</html>
