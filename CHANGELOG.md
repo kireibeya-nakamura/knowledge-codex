@@ -3,6 +3,12 @@
 Claude/Codex引き継ぎ用。変更したら必ずここに記録する。
 携帯確認URL: https://kireibeya-nakamura.github.io/knowledge-codex/?v=N （Nは毎回上げる）
 
+## v5.1 — 2026-07-04 【Pagesビルド不調の対応メモ】
+
+- 旧方式（Jekyll legacy）のPagesビルドが不調（pushごとに built/errored が交互、v5が50分以上未反映）→ `.nojekyll` を追加してJekyll処理をスキップ
+- Actions方式（workflow）への切替も試みたが、**保存済みトークンに `workflow` スコープがなく、ワークフローファイルはpushできない**（今後Actionsデプロイにしたい場合は github.com/settings/tokens でトークンに workflow スコープを追加すること）
+- 結論: legacy方式のまま `.nojekyll` で運用。ビルドが詰まったら API で `POST /repos/{owner}/{repo}/pages/builds` を叩いて再ビルド要求
+
 ## v5 — 2026-07-04 【スマホ横持ちの改善】
 
 - **ホームのパネルをサイズアップ**: 横持ち（高さ560px以下）用のコンパクト配置を追加（stage高さ620→480、パネル上下位置を詰める）。縮小率が約0.45→約0.61になり、パネルが約35%大きく表示される
