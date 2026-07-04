@@ -3,93 +3,387 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#04070d">
 <title>Knowledge Codex</title>
 <style>
   :root {
-    --bg: #060b14;
-    --panel: #0a1626;
+    --bg: #04070d;
+    --panel: rgba(11, 28, 46, 0.62);
+    --panel-solid: #0a1626;
     --line: #1b3a52;
     --line-bright: #2fb9d8;
     --cyan: #7fe8ff;
     --cyan-dim: #5fc9e8;
     --text: #d8f4ff;
     --muted: #4d7d9c;
+    --amber: #ffd98a;
+    --green: #9fe6b8;
+    --mono: Consolas, "Courier New", monospace;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
   body {
     background: var(--bg);
     color: var(--text);
     font-family: "Segoe UI", system-ui, sans-serif;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    overflow: hidden;
   }
-  .panel {
-    width: 100%;
-    max-width: 420px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 28px 24px;
-    box-shadow: 0 0 24px rgba(47, 185, 216, 0.12), inset 0 0 32px rgba(47, 185, 216, 0.04);
-  }
-  .brand {
-    font-family: Consolas, "Courier New", monospace;
-    color: var(--cyan);
-    font-size: 20px;
-    letter-spacing: 3px;
-  }
-  .sub {
-    font-family: Consolas, "Courier New", monospace;
-    color: var(--muted);
-    font-size: 11px;
-    letter-spacing: 1px;
-    margin-top: 6px;
-  }
-  .divider {
-    height: 1px;
-    background: linear-gradient(90deg, var(--line-bright), transparent);
-    margin: 18px 0;
-  }
-  .row {
-    display: flex;
-    justify-content: space-between;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 12px;
+
+  #bg { position: fixed; inset: 0; z-index: 0; }
+
+  .hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 18px 10px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
     color: var(--cyan-dim);
-    padding: 5px 0;
+    background: linear-gradient(180deg, rgba(4,7,13,0.9), transparent);
   }
-  .row span:last-child { color: var(--cyan); }
-  .status {
-    display: inline-block;
-    margin-top: 18px;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 12px;
-    color: var(--cyan);
+  .hud::after {
+    content: ""; position: absolute; left: 18px; right: 18px; bottom: 0; height: 1px;
+    background: linear-gradient(90deg, var(--line-bright), rgba(47,185,216,0.06) 60%, transparent);
+  }
+  .hud .brand { color: var(--cyan); font-size: 14px; letter-spacing: 3px; }
+  .hud .stats span { color: var(--cyan); }
+  .hud .stats { text-align: right; }
+  .hud .stats .demo { color: var(--amber); }
+
+  .scene {
+    position: fixed; inset: 0; z-index: 10;
+    perspective: 1400px; perspective-origin: 50% 42%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage {
+    position: relative;
+    width: min(1080px, 96vw); height: 620px;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transition: transform 0.25s ease-out;
+  }
+
+  .floor {
+    position: absolute; left: 50%; top: 66%;
+    width: 1800px; height: 1100px;
+    transform: translate(-50%, -18%) rotateX(76deg) translateZ(-120px);
+    background:
+      repeating-linear-gradient(0deg, rgba(47,185,216,0.16) 0 1px, transparent 1px 60px),
+      repeating-linear-gradient(90deg, rgba(47,185,216,0.16) 0 1px, transparent 1px 60px);
+    -webkit-mask-image: radial-gradient(ellipse 50% 44% at 50% 34%, #000 35%, transparent 78%);
+    mask-image: radial-gradient(ellipse 50% 44% at 50% 34%, #000 35%, transparent 78%);
+    pointer-events: none;
+  }
+
+  .panel {
+    position: absolute;
+    background: var(--panel);
     border: 1px solid var(--line-bright);
     border-radius: 6px;
-    padding: 6px 12px;
-    animation: pulse 2.4s ease-in-out infinite;
+    box-shadow: 0 0 26px rgba(47,185,216,0.22), inset 0 0 46px rgba(47,185,216,0.05);
+    cursor: pointer;
   }
-  @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 4px rgba(127, 232, 255, 0.15); }
-    50% { box-shadow: 0 0 14px rgba(127, 232, 255, 0.45); }
+  .panel::after {
+    content: ""; position: absolute; inset: 0; border-radius: 6px; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(127,232,255,0.028) 0 1px, transparent 1px 3px);
   }
-  .note { color: var(--muted); font-size: 12px; margin-top: 16px; line-height: 1.7; }
+  .panel:hover, .panel:active {
+    box-shadow: 0 0 40px rgba(127,232,255,0.4), inset 0 0 46px rgba(47,185,216,0.1);
+    border-color: var(--cyan);
+  }
+  .corner { position: absolute; width: 14px; height: 14px; pointer-events: none; }
+  .corner.tl { top: -2px; left: -2px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+  .corner.tr { top: -2px; right: -2px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+  .corner.bl { bottom: -2px; left: -2px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
+  .corner.br { bottom: -2px; right: -2px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+
+  .p-head {
+    display: flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--cyan);
+    padding: 10px 12px 8px;
+    border-bottom: 1px solid rgba(47,185,216,0.35);
+    background: linear-gradient(90deg, rgba(47,185,216,0.14), transparent 70%);
+  }
+  .p-head .dot { width: 6px; height: 6px; background: var(--cyan); box-shadow: 0 0 6px var(--cyan); border-radius: 1px; }
+  .p-head .jp { margin-left: auto; color: var(--muted); letter-spacing: 0; font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; }
+  .p-body { padding: 12px; }
+
+  .float { animation: bob 7s ease-in-out infinite alternate; }
+  .float.d1 { animation-delay: -2.2s; }
+  .float.d2 { animation-delay: -4.4s; }
+  @keyframes bob { from { transform: translateY(-4px); } to { transform: translateY(5px); } }
+
+  #panel-archive { left: 0; top: 70px; width: 290px; transform: rotateY(26deg) translateZ(-30px); }
+  #panel-records { left: 50%; top: 26px; width: 450px; margin-left: -225px; transform: translateZ(70px); }
+  #panel-system { right: 0; top: 70px; width: 290px; transform: rotateY(-26deg) translateZ(-30px); }
+  #console { left: 50%; bottom: 10px; width: 640px; margin-left: -320px; transform: translateZ(150px) rotateX(24deg); cursor: default; }
+
+  .meter { margin-bottom: 10px; }
+  .meter .lbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--text); margin-bottom: 4px; }
+  .meter .lbl span:last-child { font-family: var(--mono); color: var(--cyan); }
+  .meter .bar { height: 4px; background: rgba(47,185,216,0.14); border-radius: 2px; overflow: hidden; }
+  .meter .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--line-bright), var(--cyan)); box-shadow: 0 0 6px rgba(127,232,255,0.6); }
+
+  .kcard {
+    display: flex; gap: 10px; align-items: stretch;
+    background: rgba(13, 30, 48, 0.75);
+    border: 1px solid rgba(47,185,216,0.4);
+    border-radius: 5px;
+    padding: 9px 10px;
+    margin-bottom: 9px;
+    position: relative;
+  }
+  .kcard:hover { border-color: var(--cyan); background: rgba(18, 40, 62, 0.85); }
+  .kcard .thumb {
+    flex: 0 0 52px; height: 52px; align-self: center;
+    border: 1px solid rgba(47,185,216,0.5); border-radius: 4px;
+    background:
+      linear-gradient(135deg, transparent 42%, rgba(47,185,216,0.35) 43%, transparent 44%),
+      linear-gradient(135deg, transparent 56%, rgba(47,185,216,0.25) 57%, transparent 58%),
+      rgba(6, 16, 28, 0.8);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+  }
+  .kcard .info { min-width: 0; flex: 1; }
+  .kcard .row1 { display: flex; align-items: center; gap: 8px; }
+  .kcard .kid { font-family: var(--mono); font-size: 11px; color: var(--cyan-dim); }
+  .kcard .star { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .kcard .star.on { color: var(--cyan); text-shadow: 0 0 6px rgba(127,232,255,0.8); }
+  .kcard .title { font-size: 13px; font-weight: 600; color: var(--text); margin: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kcard .one { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kcard .row2 { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+  .imp { font-family: var(--mono); font-size: 10px; color: var(--cyan-dim); letter-spacing: 1px; }
+  .tag { font-size: 10px; color: var(--cyan-dim); border: 1px solid rgba(47,185,216,0.45); border-radius: 3px; padding: 1px 6px; }
+  .chip { font-size: 10px; border-radius: 3px; padding: 1px 7px; margin-left: auto; white-space: nowrap; }
+  .chip.enriched { color: var(--cyan); background: rgba(47,185,216,0.16); border: 1px solid rgba(47,185,216,0.5); }
+  .chip.captured { color: var(--amber); background: rgba(255,217,138,0.1); border: 1px solid rgba(255,217,138,0.4); }
+  .chip.applied { color: var(--green); background: rgba(159,230,184,0.1); border: 1px solid rgba(159,230,184,0.4); }
+
+  .sysrow { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed rgba(47,185,216,0.2); font-size: 12px; }
+  .sysrow:last-child { border-bottom: none; }
+  .sysrow .v { font-family: var(--mono); color: var(--cyan); font-size: 16px; }
+  .sysrow .v.warn { color: var(--amber); }
+  .terms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+
+  .console-inner { display: flex; gap: 10px; padding: 12px; align-items: center; }
+  .search {
+    flex: 1; display: flex; align-items: center; gap: 8px;
+    background: rgba(6, 16, 28, 0.8);
+    border: 1px solid var(--line); border-radius: 5px;
+    padding: 9px 12px;
+  }
+  .search input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-size: 13px; font-family: inherit;
+  }
+  .search input::placeholder { color: var(--muted); }
+  .search .key { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; }
+  .capture {
+    font-family: var(--mono); font-size: 13px; letter-spacing: 1px;
+    color: #04121c; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim));
+    border: none; border-radius: 5px; padding: 10px 18px; cursor: pointer;
+    box-shadow: 0 0 16px rgba(127,232,255,0.45);
+    font-weight: 700;
+  }
+  .capture:active { transform: scale(0.97); }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
+    z-index: 40; opacity: 0; pointer-events: none;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 1px; color: var(--cyan);
+    background: rgba(6, 18, 30, 0.94); border: 1px solid var(--line-bright); border-radius: 5px;
+    padding: 10px 16px; box-shadow: 0 0 20px rgba(47,185,216,0.35);
+    transition: opacity 0.25s, transform 0.25s;
+    max-width: 90vw; text-align: center;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 760px) {
+    body { overflow: auto; }
+    .scene { position: static; perspective: 900px; display: block; padding: 64px 12px 24px; height: auto; min-height: 100%; }
+    .stage { width: 100%; height: auto; display: flex; flex-direction: column; gap: 16px; transform: none; }
+    .floor { position: fixed; top: auto; bottom: -46%; }
+    .panel { position: static; width: 100% !important; margin: 0 !important; }
+    #panel-archive { transform: rotateY(5deg); }
+    #panel-records { transform: translateZ(20px); order: -1; }
+    #panel-system { transform: rotateY(-5deg); }
+    #console { transform: none; order: -2; }
+    .hud .stats { font-size: 10px; }
+  }
 </style>
 </head>
 <body>
-  <main class="panel">
-    <div class="brand">KNOWLEDGE CODEX</div>
-    <div class="sub">CREATOR'S KNOWLEDGE DATABASE // v1</div>
-    <div class="divider"></div>
-    <div class="row"><span>RECORDS</span><span>0</span></div>
-    <div class="row"><span>TERMS</span><span>0</span></div>
-    <div class="row"><span>PHASE</span><span>1 — SETUP</span></div>
-    <div class="status">SYSTEM ONLINE</div>
-    <p class="note">GitHub Pages 動作確認用の起動画面です。ここから Phase 1（登録 → 一覧 → 詳細）を実装していきます。</p>
-  </main>
+<canvas id="bg"></canvas>
+
+<header class="hud">
+  <div class="brand">KNOWLEDGE CODEX</div>
+  <div class="stats">RECORDS: <span>3</span> // TERMS: <span>4</span> // <span class="demo">DEMO MODE</span><br>SYNC <span id="clock">--:--:--</span></div>
+</header>
+
+<div class="scene">
+  <div class="stage" id="stage">
+    <div class="floor"></div>
+
+    <section class="panel float d1" id="panel-archive" data-module="ARCHIVE（カテゴリ一覧）">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="p-head"><span class="dot"></span>ARCHIVE<span class="jp">カテゴリ別</span></div>
+      <div class="p-body">
+        <div class="meter"><div class="lbl"><span>CG / Material</span><span>42</span></div><div class="bar"><i style="width:84%"></i></div></div>
+        <div class="meter"><div class="lbl"><span>UI・UX</span><span>31</span></div><div class="bar"><i style="width:62%"></i></div></div>
+        <div class="meter"><div class="lbl"><span>Coding</span><span>28</span></div><div class="bar"><i style="width:56%"></i></div></div>
+        <div class="meter"><div class="lbl"><span>AI・Prompt</span><span>27</span></div><div class="bar"><i style="width:54%"></i></div></div>
+        <div class="meter"><div class="lbl"><span>Design</span><span>18</span></div><div class="bar"><i style="width:36%"></i></div></div>
+        <div class="meter"><div class="lbl"><span>Workflow</span><span>12</span></div><div class="bar"><i style="width:24%"></i></div></div>
+      </div>
+    </section>
+
+    <section class="panel float" id="panel-records" data-module="RECORDS（知識一覧）">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="p-head"><span class="dot"></span>RECENT RECORDS<span class="jp">最近の知識</span></div>
+      <div class="p-body">
+        <div class="kcard">
+          <div class="thumb">IMG</div>
+          <div class="info">
+            <div class="row1"><span class="kid">KX-0003</span><span class="star on">★</span></div>
+            <div class="title">水面の動きがゴムっぽく見える原因</div>
+            <div class="one">水っぽさは高さ変位でなく法線・反射・リップルで出す</div>
+            <div class="row2"><span class="imp">◆◆◇</span><span class="tag">WPO</span><span class="tag">Water</span><span class="chip enriched">AI整理済</span></div>
+          </div>
+        </div>
+        <div class="kcard">
+          <div class="thumb">IMG</div>
+          <div class="info">
+            <div class="row1"><span class="kid">KX-0002</span><span class="star">★</span></div>
+            <div class="title">サイバーUIは便利さが先</div>
+            <div class="one">装飾は便利な情報設計の上に載せる</div>
+            <div class="row2"><span class="imp">◆◆◆</span><span class="tag">UI</span><span class="tag">Cyber</span><span class="chip applied">使用済</span></div>
+          </div>
+        </div>
+        <div class="kcard">
+          <div class="thumb">IMG</div>
+          <div class="info">
+            <div class="row1"><span class="kid">KX-0001</span><span class="star">★</span></div>
+            <div class="title">深度フェードで水際を馴染ませる</div>
+            <div class="one">Depth Fadeで交差部の硬いエッジを消す</div>
+            <div class="row2"><span class="imp">◆◇◇</span><span class="tag">Depth Fade</span><span class="chip captured">未整理</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel float d2" id="panel-system" data-module="SYSTEM（状態・用語集）">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="p-head"><span class="dot"></span>SYSTEM<span class="jp">状態</span></div>
+      <div class="p-body">
+        <div class="sysrow"><span>INBOX — AI整理待ち</span><span class="v warn">1</span></div>
+        <div class="sysrow"><span>今月の登録</span><span class="v">3</span></div>
+        <div class="sysrow"><span>使用済（実戦投入）</span><span class="v">1</span></div>
+        <div class="sysrow" style="display:block;">
+          <span style="font-size:11px;color:var(--muted);">NEW TERMS — 最近覚えた技術語</span>
+          <div class="terms">
+            <span class="tag">Depth Fade</span><span class="tag">WPO</span><span class="tag">Gerstner Wave</span><span class="tag">Fresnel</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="console">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="console-inner">
+        <div class="search">
+          <span style="color:var(--muted);">⌕</span>
+          <input id="searchbox" type="search" placeholder="知識を検索…（タイトル / タグ / 技術語）" enterkeyhint="search">
+          <span class="key">/</span>
+        </div>
+        <button class="capture" id="btn-capture">+ CAPTURE</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  var canvas = document.getElementById('bg');
+  var ctx = canvas.getContext('2d');
+  var particles = [];
+  function resize() {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+  }
+  addEventListener('resize', resize);
+  resize();
+  var COUNT = Math.min(70, Math.floor(innerWidth / 14));
+  for (var i = 0; i < COUNT; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.6 + 0.4,
+      vy: -(Math.random() * 0.22 + 0.05),
+      a: Math.random() * 0.5 + 0.15
+    });
+  }
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    var g = ctx.createRadialGradient(canvas.width/2, canvas.height*0.42, 40, canvas.width/2, canvas.height*0.42, canvas.width*0.7);
+    g.addColorStop(0, 'rgba(20,60,90,0.28)');
+    g.addColorStop(1, 'rgba(4,7,13,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    for (var i = 0; i < particles.length; i++) {
+      var p = particles[i];
+      p.y += p.vy;
+      if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(127,232,255,' + p.a + ')';
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  var stage = document.getElementById('stage');
+  if (matchMedia('(hover: hover) and (min-width: 761px)').matches) {
+    addEventListener('pointermove', function (e) {
+      var ry = ((e.clientX / innerWidth) - 0.5) * 7;
+      var rx = ((e.clientY / innerHeight) - 0.5) * -5;
+      stage.style.setProperty('--ry', ry.toFixed(2) + 'deg');
+      stage.style.setProperty('--rx', rx.toFixed(2) + 'deg');
+    });
+  }
+
+  var toast = document.getElementById('toast');
+  var toastTimer = null;
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2200);
+  }
+  document.querySelectorAll('.panel[data-module]').forEach(function (p) {
+    p.addEventListener('click', function () {
+      showToast('MODULE: ' + p.dataset.module + ' // Phase 1 で実装予定');
+    });
+  });
+  document.getElementById('btn-capture').addEventListener('click', function () {
+    showToast('CAPTURE — 知識登録 // Phase 1 で実装予定');
+  });
+  document.getElementById('searchbox').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') showToast('SEARCH // Phase 1 で実装予定');
+  });
+  addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== document.getElementById('searchbox')) {
+      e.preventDefault();
+      document.getElementById('searchbox').focus();
+    }
+  });
+
+  function tick() {
+    var d = new Date();
+    function z(n) { return (n < 10 ? '0' : '') + n; }
+    document.getElementById('clock').textContent = z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+  }
+  setInterval(tick, 1000);
+  tick();
+</script>
 </body>
 </html>
