@@ -298,6 +298,22 @@
   }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  @media (min-width: 761px) and (max-height: 560px) {
+    .scene { perspective-origin: 50% 46%; }
+    .stage { height: 480px; }
+    #panel-records { top: 0; }
+    #panel-archive, #panel-system { top: 34px; }
+    #console { bottom: 0; }
+    .kcard { padding: 7px 9px; }
+    .kcard .thumb { flex-basis: 44px; height: 44px; }
+    #view { padding: 52px 40px 20px; }
+    .vpanel { max-width: 640px; }
+    .vbody { padding: 12px 14px 16px; }
+    .field { margin-bottom: 10px; }
+    input[type="text"], input[type="search"], input[type="url"], textarea, select { padding: 7px 10px; font-size: 13px; }
+    textarea { min-height: 64px; }
+  }
+
   @media (max-width: 760px) {
     body { overflow: auto; }
     .scene { position: static; perspective: 900px; display: block; padding: 64px 12px 24px; height: auto; min-height: 100%; }
@@ -969,8 +985,9 @@ var lastInput = 0;
 
 function fitStage() {
   if (matchMedia('(min-width: 761px)').matches) {
-    var s = Math.min(1, (innerHeight - 90) / 660, (innerWidth - 32) / 1100);
-    stage.style.setProperty('--s', Math.max(0.45, s).toFixed(3));
+    var stageH = parseFloat(getComputedStyle(stage).height) || 620;
+    var s = Math.min(1, (innerHeight - 64) / (stageH + 56), (innerWidth - 32) / 1100);
+    stage.style.setProperty('--s', Math.max(0.5, s).toFixed(3));
   } else {
     stage.style.setProperty('--s', '1');
   }
