@@ -9,7 +9,7 @@
   :root {
     --bg: #04070d;
     --panel: rgba(11, 28, 46, 0.62);
-    --panel-solid: #0a1626;
+    --panel-solid: rgba(9, 22, 38, 0.96);
     --line: #1b3a52;
     --line-bright: #2fb9d8;
     --cyan: #7fe8ff;
@@ -33,20 +33,26 @@
 
   .hud {
     position: fixed; top: 0; left: 0; right: 0; z-index: 30;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
     padding: 12px 18px 10px;
     font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
     color: var(--cyan-dim);
     background: linear-gradient(180deg, rgba(4,7,13,0.9), transparent);
+    pointer-events: none;
   }
   .hud::after {
     content: ""; position: absolute; left: 18px; right: 18px; bottom: 0; height: 1px;
     background: linear-gradient(90deg, var(--line-bright), rgba(47,185,216,0.06) 60%, transparent);
   }
-  .hud .brand { color: var(--cyan); font-size: 14px; letter-spacing: 3px; }
-  .hud .stats span { color: var(--cyan); }
+  .hud .brand { color: var(--cyan); font-size: 14px; letter-spacing: 3px; cursor: pointer; pointer-events: auto; }
+  .hud .right { display: flex; align-items: center; gap: 12px; pointer-events: auto; }
   .hud .stats { text-align: right; }
-  .hud .stats .demo { color: var(--amber); }
+  .hud .stats span { color: var(--cyan); }
+  .hud .gear {
+    cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line);
+    border-radius: 4px; padding: 3px 8px; font-size: 12px; background: rgba(6,16,28,0.6);
+  }
+  .hud .gear:hover { color: var(--cyan); border-color: var(--line-bright); }
 
   .scene {
     position: fixed; inset: 0; z-index: 10;
@@ -88,7 +94,7 @@
     box-shadow: 0 0 40px rgba(127,232,255,0.4), inset 0 0 46px rgba(47,185,216,0.1);
     border-color: var(--cyan);
   }
-  .corner { position: absolute; width: 14px; height: 14px; pointer-events: none; }
+  .corner { position: absolute; width: 14px; height: 14px; pointer-events: none; z-index: 2; }
   .corner.tl { top: -2px; left: -2px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
   .corner.tr { top: -2px; right: -2px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
   .corner.bl { bottom: -2px; left: -2px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
@@ -115,7 +121,8 @@
   #panel-system { right: 0; top: 70px; width: 290px; transform: rotateY(-26deg) translateZ(-30px); }
   #console { left: 50%; bottom: 10px; width: 640px; margin-left: -320px; transform: translateZ(150px) rotateX(24deg); cursor: default; }
 
-  .meter { margin-bottom: 10px; }
+  .meter { margin-bottom: 10px; cursor: pointer; }
+  .meter:hover .lbl span:first-child { color: var(--cyan); }
   .meter .lbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--text); margin-bottom: 4px; }
   .meter .lbl span:last-child { font-family: var(--mono); color: var(--cyan); }
   .meter .bar { height: 4px; background: rgba(47,185,216,0.14); border-radius: 2px; overflow: hidden; }
@@ -129,6 +136,7 @@
     padding: 9px 10px;
     margin-bottom: 9px;
     position: relative;
+    cursor: pointer;
   }
   .kcard:hover { border-color: var(--cyan); background: rgba(18, 40, 62, 0.85); }
   .kcard .thumb {
@@ -144,7 +152,7 @@
   .kcard .info { min-width: 0; flex: 1; }
   .kcard .row1 { display: flex; align-items: center; gap: 8px; }
   .kcard .kid { font-family: var(--mono); font-size: 11px; color: var(--cyan-dim); }
-  .kcard .star { margin-left: auto; font-size: 12px; color: var(--muted); }
+  .kcard .star { margin-left: auto; font-size: 14px; color: var(--muted); padding: 0 2px; }
   .kcard .star.on { color: var(--cyan); text-shadow: 0 0 6px rgba(127,232,255,0.8); }
   .kcard .title { font-size: 13px; font-weight: 600; color: var(--text); margin: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .kcard .one { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -155,12 +163,16 @@
   .chip.enriched { color: var(--cyan); background: rgba(47,185,216,0.16); border: 1px solid rgba(47,185,216,0.5); }
   .chip.captured { color: var(--amber); background: rgba(255,217,138,0.1); border: 1px solid rgba(255,217,138,0.4); }
   .chip.applied { color: var(--green); background: rgba(159,230,184,0.1); border: 1px solid rgba(159,230,184,0.4); }
+  .chip.archived { color: var(--muted); background: rgba(77,125,156,0.1); border: 1px solid rgba(77,125,156,0.4); }
 
-  .sysrow { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed rgba(47,185,216,0.2); font-size: 12px; }
-  .sysrow:last-child { border-bottom: none; }
+  .sysrow { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px dashed rgba(47,185,216,0.2); font-size: 12px; cursor: pointer; }
+  .sysrow:hover span:first-child { color: var(--cyan); }
+  .sysrow:last-child { border-bottom: none; cursor: default; }
   .sysrow .v { font-family: var(--mono); color: var(--cyan); font-size: 16px; }
   .sysrow .v.warn { color: var(--amber); }
   .terms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .terms .tag { cursor: pointer; }
+  .terms .tag:hover { color: var(--cyan); border-color: var(--cyan); }
 
   .console-inner { display: flex; gap: 10px; padding: 12px; align-items: center; }
   .search {
@@ -171,7 +183,7 @@
   }
   .search input {
     flex: 1; background: transparent; border: none; outline: none;
-    color: var(--text); font-size: 13px; font-family: inherit;
+    color: var(--text); font-size: 13px; font-family: inherit; min-width: 0;
   }
   .search input::placeholder { color: var(--muted); }
   .search .key { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; }
@@ -183,6 +195,97 @@
     font-weight: 700;
   }
   .capture:active { transform: scale(0.97); }
+
+  #view {
+    position: fixed; inset: 0; z-index: 25; display: none;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    background: rgba(4, 7, 13, 0.8);
+    padding: 62px 14px 28px;
+  }
+  #view.open { display: block; }
+  .vpanel {
+    position: relative; max-width: 880px; margin: 0 auto;
+    background: var(--panel-solid);
+    border: 1px solid var(--line-bright); border-radius: 6px;
+    box-shadow: 0 0 34px rgba(47,185,216,0.28);
+    animation: viewIn 0.22s ease-out;
+  }
+  @keyframes viewIn { from { opacity: 0; transform: scale(0.965) translateY(8px); } to { opacity: 1; transform: none; } }
+  .vhead {
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--cyan);
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(47,185,216,0.35);
+    background: linear-gradient(90deg, rgba(47,185,216,0.14), transparent 70%);
+  }
+  .vhead .back {
+    cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line);
+    border-radius: 4px; padding: 3px 10px; font-size: 11px; white-space: nowrap;
+  }
+  .vhead .back:hover { color: var(--cyan); border-color: var(--line-bright); }
+  .vhead .jp { margin-left: auto; color: var(--muted); letter-spacing: 0; font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; }
+  .vbody { padding: 16px 16px 20px; }
+
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--cyan-dim); margin-bottom: 5px; }
+  .field label em { font-style: normal; color: var(--amber); }
+  input[type="text"], input[type="search"], input[type="url"], textarea, select {
+    width: 100%; background: rgba(6, 16, 28, 0.85);
+    border: 1px solid var(--line); border-radius: 5px;
+    color: var(--text); padding: 9px 12px; font-size: 14px; font-family: inherit;
+    outline: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 8px rgba(127,232,255,0.25); }
+  textarea { resize: vertical; min-height: 90px; }
+  select { -webkit-appearance: none; appearance: none; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btnrow { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .btn {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
+    color: var(--cyan); background: rgba(47,185,216,0.08);
+    border: 1px solid var(--line-bright); border-radius: 5px;
+    padding: 9px 16px; cursor: pointer;
+  }
+  .btn:hover { background: rgba(47,185,216,0.18); }
+  .btn:active { transform: scale(0.97); }
+  .btn.primary { color: #04121c; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim)); border: none; font-weight: 700; box-shadow: 0 0 14px rgba(127,232,255,0.4); }
+  .btn.danger { color: #ff9a9a; border-color: rgba(255,120,120,0.5); background: rgba(255,120,120,0.06); }
+  details.adv { margin-top: 4px; }
+  details.adv summary { cursor: pointer; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--cyan-dim); padding: 6px 0; list-style: none; }
+  details.adv summary::before { content: "▸ "; }
+  details.adv[open] summary::before { content: "▾ "; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  .filters select { width: auto; padding: 6px 26px 6px 10px; font-size: 12px; background-image: linear-gradient(45deg, transparent 50%, var(--cyan-dim) 50%), linear-gradient(135deg, var(--cyan-dim) 50%, transparent 50%); background-position: calc(100% - 14px) 55%, calc(100% - 10px) 55%; background-size: 4px 4px; background-repeat: no-repeat; }
+  .filters .fav-toggle { font-size: 13px; padding: 6px 12px; }
+  .filters .fav-toggle.on { color: var(--cyan); background: rgba(47,185,216,0.2); }
+  .qresult { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+  .qresult span { color: var(--cyan); }
+  .listgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 10px; }
+  .listgrid .kcard { margin-bottom: 0; }
+  .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 34px 0; }
+  .empty .big { font-family: var(--mono); color: var(--cyan-dim); font-size: 15px; letter-spacing: 2px; margin-bottom: 8px; }
+
+  .dhead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .dhead .kid { font-family: var(--mono); font-size: 13px; color: var(--cyan-dim); }
+  .dhead .star { cursor: pointer; font-size: 18px; color: var(--muted); }
+  .dhead .star.on { color: var(--cyan); text-shadow: 0 0 8px rgba(127,232,255,0.8); }
+  .dtitle { font-size: 19px; font-weight: 700; color: var(--text); margin: 4px 0 2px; }
+  .done { font-size: 13px; color: var(--cyan-dim); margin-bottom: 10px; }
+  .dmeta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .dmeta .cat { font-size: 11px; color: var(--text); background: rgba(47,185,216,0.12); border: 1px solid rgba(47,185,216,0.4); border-radius: 3px; padding: 2px 8px; }
+  .dmeta .date { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
+  .sec { border: 1px solid rgba(47,185,216,0.25); border-radius: 5px; margin-bottom: 12px; overflow: hidden; }
+  .sec .shead { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--cyan-dim); padding: 7px 12px; background: rgba(47,185,216,0.07); border-bottom: 1px solid rgba(47,185,216,0.2); }
+  .sec .sbody { padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+  .sec .sbody.dim { color: var(--muted); font-size: 12px; }
+  .sec ul { margin: 0 0 0 18px; }
+  .sec .term { margin-bottom: 6px; }
+  .sec .term b { color: var(--cyan); font-weight: 600; }
+  .loglist .log { border-bottom: 1px dashed rgba(47,185,216,0.2); padding: 6px 0; font-size: 12px; }
+  .loglist .log:last-child { border-bottom: none; }
+  .loglist .log .d { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-right: 8px; }
 
   #toast {
     position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
@@ -206,6 +309,10 @@
     #panel-system { transform: rotateY(-5deg); }
     #console { transform: none; order: -2; }
     .hud .stats { font-size: 10px; }
+    .grid2 { grid-template-columns: 1fr; }
+    #view { padding: 58px 8px 20px; }
+    .vbody { padding: 12px 12px 16px; }
+    .dmeta .date { margin-left: 0; width: 100%; }
   }
 </style>
 </head>
@@ -213,75 +320,33 @@
 <canvas id="bg"></canvas>
 
 <header class="hud">
-  <div class="brand">KNOWLEDGE CODEX</div>
-  <div class="stats">RECORDS: <span>3</span> // TERMS: <span>4</span> // <span class="demo">DEMO MODE</span><br>SYNC <span id="clock">--:--:--</span></div>
+  <div class="brand" id="go-home">KNOWLEDGE CODEX</div>
+  <div class="right">
+    <div class="stats">RECORDS: <span id="st-rec">0</span> // TAGS: <span id="st-tag">0</span><br>SYNC <span id="clock">--:--:--</span></div>
+    <div class="gear" id="go-settings" title="設定">⚙</div>
+  </div>
 </header>
 
 <div class="scene">
   <div class="stage" id="stage">
     <div class="floor"></div>
 
-    <section class="panel float d1" id="panel-archive" data-module="ARCHIVE（カテゴリ一覧）">
+    <section class="panel float d1" id="panel-archive">
       <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
       <div class="p-head"><span class="dot"></span>ARCHIVE<span class="jp">カテゴリ別</span></div>
-      <div class="p-body">
-        <div class="meter"><div class="lbl"><span>CG / Material</span><span>42</span></div><div class="bar"><i style="width:84%"></i></div></div>
-        <div class="meter"><div class="lbl"><span>UI・UX</span><span>31</span></div><div class="bar"><i style="width:62%"></i></div></div>
-        <div class="meter"><div class="lbl"><span>Coding</span><span>28</span></div><div class="bar"><i style="width:56%"></i></div></div>
-        <div class="meter"><div class="lbl"><span>AI・Prompt</span><span>27</span></div><div class="bar"><i style="width:54%"></i></div></div>
-        <div class="meter"><div class="lbl"><span>Design</span><span>18</span></div><div class="bar"><i style="width:36%"></i></div></div>
-        <div class="meter"><div class="lbl"><span>Workflow</span><span>12</span></div><div class="bar"><i style="width:24%"></i></div></div>
-      </div>
+      <div class="p-body" id="archive-body"></div>
     </section>
 
-    <section class="panel float" id="panel-records" data-module="RECORDS（知識一覧）">
+    <section class="panel float" id="panel-records">
       <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="p-head"><span class="dot"></span>RECENT RECORDS<span class="jp">最近の知識</span></div>
-      <div class="p-body">
-        <div class="kcard">
-          <div class="thumb">IMG</div>
-          <div class="info">
-            <div class="row1"><span class="kid">KX-0003</span><span class="star on">★</span></div>
-            <div class="title">水面の動きがゴムっぽく見える原因</div>
-            <div class="one">水っぽさは高さ変位でなく法線・反射・リップルで出す</div>
-            <div class="row2"><span class="imp">◆◆◇</span><span class="tag">WPO</span><span class="tag">Water</span><span class="chip enriched">AI整理済</span></div>
-          </div>
-        </div>
-        <div class="kcard">
-          <div class="thumb">IMG</div>
-          <div class="info">
-            <div class="row1"><span class="kid">KX-0002</span><span class="star">★</span></div>
-            <div class="title">サイバーUIは便利さが先</div>
-            <div class="one">装飾は便利な情報設計の上に載せる</div>
-            <div class="row2"><span class="imp">◆◆◆</span><span class="tag">UI</span><span class="tag">Cyber</span><span class="chip applied">使用済</span></div>
-          </div>
-        </div>
-        <div class="kcard">
-          <div class="thumb">IMG</div>
-          <div class="info">
-            <div class="row1"><span class="kid">KX-0001</span><span class="star">★</span></div>
-            <div class="title">深度フェードで水際を馴染ませる</div>
-            <div class="one">Depth Fadeで交差部の硬いエッジを消す</div>
-            <div class="row2"><span class="imp">◆◇◇</span><span class="tag">Depth Fade</span><span class="chip captured">未整理</span></div>
-          </div>
-        </div>
-      </div>
+      <div class="p-head"><span class="dot"></span>RECENT RECORDS<span class="jp">最近の知識 — タップで一覧へ</span></div>
+      <div class="p-body" id="recent-body"></div>
     </section>
 
-    <section class="panel float d2" id="panel-system" data-module="SYSTEM（状態・用語集）">
+    <section class="panel float d2" id="panel-system">
       <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
       <div class="p-head"><span class="dot"></span>SYSTEM<span class="jp">状態</span></div>
-      <div class="p-body">
-        <div class="sysrow"><span>INBOX — AI整理待ち</span><span class="v warn">1</span></div>
-        <div class="sysrow"><span>今月の登録</span><span class="v">3</span></div>
-        <div class="sysrow"><span>使用済（実戦投入）</span><span class="v">1</span></div>
-        <div class="sysrow" style="display:block;">
-          <span style="font-size:11px;color:var(--muted);">NEW TERMS — 最近覚えた技術語</span>
-          <div class="terms">
-            <span class="tag">Depth Fade</span><span class="tag">WPO</span><span class="tag">Gerstner Wave</span><span class="tag">Fresnel</span>
-          </div>
-        </div>
-      </div>
+      <div class="p-body" id="system-body"></div>
     </section>
 
     <section class="panel" id="console">
@@ -289,7 +354,7 @@
       <div class="console-inner">
         <div class="search">
           <span style="color:var(--muted);">⌕</span>
-          <input id="searchbox" type="search" placeholder="知識を検索…（タイトル / タグ / 技術語）" enterkeyhint="search">
+          <input id="searchbox" type="search" placeholder="知識を検索…（タイトル / タグ / 本文）" enterkeyhint="search">
           <span class="key">/</span>
         </div>
         <button class="capture" id="btn-capture">+ CAPTURE</button>
@@ -298,138 +363,698 @@
   </div>
 </div>
 
+<div id="view"></div>
 <div id="toast"></div>
 
 <script>
-  var canvas = document.getElementById('bg');
-  var ctx = canvas.getContext('2d');
-  var particles = [];
-  function resize() {
-    canvas.width = innerWidth;
-    canvas.height = innerHeight;
-  }
-  addEventListener('resize', resize);
-  resize();
-  var COUNT = Math.min(70, Math.floor(innerWidth / 14));
-  for (var i = 0; i < COUNT; i++) {
-    particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      z: Math.random() * 0.8 + 0.2,
-      r: Math.random() * 1.6 + 0.4,
-      vy: -(Math.random() * 0.22 + 0.05),
-      a: Math.random() * 0.5 + 0.15
-    });
-  }
+'use strict';
 
-  var stage = document.getElementById('stage');
-  var targRx = 0, targRy = 0, curRx = 0, curRy = 0;
-  var lastInput = 0;
+/* ---------- utils ---------- */
+function $(sel, el) { return (el || document).querySelector(sel); }
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function today() {
+  var d = new Date();
+  function z(n) { return (n < 10 ? '0' : '') + n; }
+  return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate());
+}
+function fmtDate(iso) { return (iso || '').slice(0, 10); }
 
-  function fitStage() {
-    if (matchMedia('(min-width: 761px)').matches) {
-      var s = Math.min(1, (innerHeight - 90) / 660, (innerWidth - 32) / 1100);
-      stage.style.setProperty('--s', Math.max(0.45, s).toFixed(3));
-    } else {
-      stage.style.setProperty('--s', '1');
-    }
-  }
-  addEventListener('resize', fitStage);
-  fitStage();
+var toastEl = document.getElementById('toast');
+var toastTimer = null;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
+}
 
-  addEventListener('pointermove', function (e) {
-    if (!matchMedia('(hover: hover)').matches) return;
-    lastInput = performance.now();
-    targRy = ((e.clientX / innerWidth) - 0.5) * 7;
-    targRx = ((e.clientY / innerHeight) - 0.5) * -5;
+/* ---------- constants ---------- */
+var CATS = ['CG', 'UI・UX', 'Design', 'Coding', 'AI・Prompt', 'Workflow'];
+var TYPES = { solution: '解決策', insight: '気づき', term: '用語', recipe: '手順', prompt: 'プロンプト', reference: '参考' };
+var TYPE_CODE = { solution: 'SOL', insight: 'INS', term: 'TRM', recipe: 'RCP', prompt: 'PRM', reference: 'REF' };
+var STATUS = { captured: '未整理', enriched: 'AI整理済', applied: '使用済', archived: '保管' };
+
+/* ---------- IndexedDB ---------- */
+var DB_NAME = 'knowledge-codex', DB_STORE = 'records', db = null;
+function openDB() {
+  return new Promise(function (res, rej) {
+    var r = indexedDB.open(DB_NAME, 1);
+    r.onupgradeneeded = function () { r.result.createObjectStore(DB_STORE, { keyPath: 'id' }); };
+    r.onsuccess = function () { res(r.result); };
+    r.onerror = function () { rej(r.error); };
   });
+}
+function dbAll() {
+  return new Promise(function (res, rej) {
+    var tx = db.transaction(DB_STORE, 'readonly').objectStore(DB_STORE).getAll();
+    tx.onsuccess = function () { res(tx.result || []); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
+function dbPut(rec) {
+  return new Promise(function (res, rej) {
+    var tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put(rec);
+    tx.oncomplete = function () { res(); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
+function dbDel(id) {
+  return new Promise(function (res, rej) {
+    var tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).delete(id);
+    tx.oncomplete = function () { res(); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
 
-  function onOrient(e) {
-    if (e.gamma == null && e.beta == null) return;
-    lastInput = performance.now();
-    var g = Math.max(-25, Math.min(25, e.gamma || 0));
-    var b = Math.max(-25, Math.min(25, (e.beta || 45) - 45));
-    targRy = g / 25 * 5;
-    targRx = b / 25 * -3;
-  }
-  if (!matchMedia('(hover: hover)').matches) {
-    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-      var askGyro = function () {
-        DeviceOrientationEvent.requestPermission().then(function (r) {
-          if (r === 'granted') addEventListener('deviceorientation', onOrient);
-        }).catch(function () {});
-        removeEventListener('touchend', askGyro);
-      };
-      addEventListener('touchend', askGyro);
+/* ---------- state ---------- */
+var state = { records: [] };
+function byId(id) {
+  for (var i = 0; i < state.records.length; i++) if (state.records[i].id === id) return state.records[i];
+  return null;
+}
+function nextId() {
+  var max = 0;
+  state.records.forEach(function (r) {
+    var n = parseInt((r.id || '').split('-')[1], 10);
+    if (n > max) max = n;
+  });
+  return 'KX-' + String(max + 1).padStart(4, '0');
+}
+function saveRecord(rec) {
+  rec.updatedAt = new Date().toISOString();
+  var i = state.records.findIndex(function (r) { return r.id === rec.id; });
+  if (i >= 0) state.records[i] = rec; else state.records.push(rec);
+  return dbPut(rec);
+}
+function newRecord(o) {
+  return Object.assign({
+    id: nextId(), title: '', oneLiner: '', body: '',
+    attachments: [], links: [], category: '', tags: [],
+    type: 'insight', importance: 1, status: 'captured', favorite: false,
+    ai: null, appendLog: [], usedIn: [],
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
+  }, o || {});
+}
+function allTags() {
+  var set = {};
+  state.records.forEach(function (r) { (r.tags || []).forEach(function (t) { set[t] = 1; }); });
+  return Object.keys(set).sort();
+}
+
+/* ---------- seed ---------- */
+function seedRecords() {
+  var t = new Date().toISOString();
+  return [
+    newRecord({
+      id: 'KX-0001', title: '深度フェードで水際を馴染ませる',
+      oneLiner: 'Depth Fadeで交差部の硬いエッジを消す',
+      body: '水面メッシュと地形の交差ラインがくっきり出て嘘っぽい。Depth Fadeノードでシーン深度との差からオパシティ/色をフェードさせると、水際が柔らかく馴染む。',
+      category: 'CG/Material', tags: ['Depth Fade', 'Water', 'Material'],
+      type: 'solution', importance: 1, status: 'captured', createdAt: t, updatedAt: t
+    }),
+    newRecord({
+      id: 'KX-0002', title: 'サイバーUIは便利さが先',
+      oneLiner: '装飾は便利な情報設計の上に載せる',
+      body: 'サイバーな装飾は便利な情報設計の上に載せるべき。見た目がかっこよくても、入力や検索が面倒なら使わなくなる。',
+      category: 'UI・UX/サイバーデザイン', tags: ['UI', 'Cyber', 'Usability'],
+      type: 'insight', importance: 3, status: 'applied',
+      usedIn: [{ project: 'Knowledge Codex', date: today(), note: 'このアプリのUI設計方針として採用' }],
+      appendLog: [{ date: today(), text: '登録は「タイトル＋一言メモ」だけで成立させる設計にした' }],
+      createdAt: t, updatedAt: t
+    }),
+    newRecord({
+      id: 'KX-0003', title: '水面の動きがゴムっぽく見える原因',
+      oneLiner: '水っぽさは高さ変位でなく法線・反射・リップルで出す',
+      body: 'WPOで高さ変位を大きく動かしすぎると、海面が水ではなく弾性シートのように見える。水っぽさは高さ変位より、法線・反射・細かなリップル・減衰で出す。',
+      category: 'CG/水表現', tags: ['WPO', 'Normal', 'Water', 'Reflection'],
+      type: 'solution', importance: 2, status: 'enriched', favorite: true,
+      ai: {
+        summary: '海面のゴム感は「高さ変位のスケール過多」が原因。水らしさは形状でなく、法線の細かな揺れ・反射の歪み・リップルの減衰で表現するのが定石。',
+        keyPoints: ['WPO（高さ変位）は微小に抑える', '主役は法線と反射の揺れ', 'リップルは距離減衰させる'],
+        terms: [
+          { term: 'WPO', desc: 'World Position Offset。頂点をマテリアルから動かす仕組み' },
+          { term: 'Height Field', desc: '高さ場。水面の凹凸を1枚のスカラー場で表す' }
+        ],
+        useCases: ['夜の海アプリの水面調整', 'リアルタイム水面全般'],
+        nextKeywords: ['Gerstner Wave', 'Detail Normal'],
+        nextExperiments: ['WPOを1/10にして法線强度を上げるABテスト'],
+        suggestedTags: [], suggestedCategory: '', relatedIds: ['KX-0001']
+      },
+      createdAt: t, updatedAt: t
+    })
+  ];
+}
+
+/* ---------- shared card ---------- */
+function cardHTML(r) {
+  var tags = (r.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
+  var more = (r.tags || []).length > 3 ? '<span class="tag">+' + ((r.tags || []).length - 3) + '</span>' : '';
+  var imp = '◆◆◆'.slice(0, r.importance) + '◇◇◇'.slice(0, 3 - r.importance);
+  return '<div class="kcard" data-id="' + esc(r.id) + '">' +
+    '<div class="thumb">' + (TYPE_CODE[r.type] || 'REC') + '</div>' +
+    '<div class="info">' +
+      '<div class="row1"><span class="kid">' + esc(r.id) + '</span>' +
+      '<span class="star' + (r.favorite ? ' on' : '') + '" data-star="' + esc(r.id) + '">★</span></div>' +
+      '<div class="title">' + esc(r.title) + '</div>' +
+      '<div class="one">' + esc(r.oneLiner || (r.body || '').slice(0, 40)) + '</div>' +
+      '<div class="row2"><span class="imp">' + imp + '</span>' + tags + more +
+      '<span class="chip ' + esc(r.status) + '">' + (STATUS[r.status] || r.status) + '</span></div>' +
+    '</div></div>';
+}
+function bindCards(container) {
+  container.addEventListener('click', function (e) {
+    var star = e.target.closest('[data-star]');
+    if (star) {
+      e.stopPropagation();
+      var rec = byId(star.dataset.star);
+      if (rec) {
+        rec.favorite = !rec.favorite;
+        saveRecord(rec).then(function () { star.classList.toggle('on', rec.favorite); renderHome(); });
+      }
+      return;
+    }
+    var card = e.target.closest('.kcard');
+    if (card) { e.stopPropagation(); location.hash = '#/detail/' + card.dataset.id; }
+  });
+}
+
+/* ---------- home ---------- */
+function renderHome() {
+  var recs = state.records;
+  var active = recs.filter(function (r) { return r.status !== 'archived'; });
+
+  document.getElementById('st-rec').textContent = active.length;
+  document.getElementById('st-tag').textContent = allTags().length;
+
+  var counts = {};
+  CATS.forEach(function (c) { counts[c] = 0; });
+  active.forEach(function (r) {
+    var c = (r.category || '').split('/')[0];
+    if (counts[c] == null) counts[c] = 0;
+    counts[c]++;
+  });
+  var max = 1;
+  Object.keys(counts).forEach(function (c) { if (counts[c] > max) max = counts[c]; });
+  var keys = CATS.slice();
+  Object.keys(counts).forEach(function (c) { if (keys.indexOf(c) < 0 && counts[c] > 0) keys.push(c); });
+  document.getElementById('archive-body').innerHTML = keys.map(function (c) {
+    return '<div class="meter" data-cat="' + esc(c) + '"><div class="lbl"><span>' + esc(c) + '</span><span>' + counts[c] + '</span></div>' +
+      '<div class="bar"><i style="width:' + Math.round(counts[c] / max * 100) + '%"></i></div></div>';
+  }).join('');
+
+  var recent = active.slice().sort(function (a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); }).slice(0, 3);
+  document.getElementById('recent-body').innerHTML =
+    recent.length ? recent.map(cardHTML).join('') :
+    '<div class="empty"><div class="big">NO RECORDS</div>+ CAPTURE から最初の知識を登録</div>';
+
+  var inbox = active.filter(function (r) { return r.status === 'captured'; }).length;
+  var applied = active.filter(function (r) { return r.status === 'applied'; }).length;
+  var month = new Date().toISOString().slice(0, 7);
+  var monthly = active.filter(function (r) { return (r.createdAt || '').slice(0, 7) === month; }).length;
+  var recentTags = [];
+  recent.concat(active).forEach(function (r) {
+    (r.tags || []).forEach(function (t) { if (recentTags.indexOf(t) < 0) recentTags.push(t); });
+  });
+  document.getElementById('system-body').innerHTML =
+    '<div class="sysrow" data-go="#/list?status=captured"><span>INBOX — AI整理待ち</span><span class="v' + (inbox ? ' warn' : '') + '">' + inbox + '</span></div>' +
+    '<div class="sysrow" data-go="#/list"><span>今月の登録</span><span class="v">' + monthly + '</span></div>' +
+    '<div class="sysrow" data-go="#/list?status=applied"><span>使用済（実戦投入）</span><span class="v">' + applied + '</span></div>' +
+    '<div class="sysrow" style="display:block;"><span style="font-size:11px;color:var(--muted);">TAGS — 最近のタグ</span>' +
+    '<div class="terms">' + recentTags.slice(0, 5).map(function (t) { return '<span class="tag" data-tag="' + esc(t) + '">' + esc(t) + '</span>'; }).join('') + '</div></div>';
+}
+
+/* ---------- view helpers ---------- */
+var viewEl = document.getElementById('view');
+function openView(html, wire) {
+  viewEl.innerHTML = html;
+  viewEl.classList.add('open');
+  viewEl.scrollTop = 0;
+  if (wire) wire(viewEl);
+  var back = $('.back', viewEl);
+  if (back) back.addEventListener('click', function () { history.length > 1 ? history.back() : (location.hash = '#/'); });
+}
+function closeView() { viewEl.classList.remove('open'); viewEl.innerHTML = ''; }
+function vhead(code, jp) {
+  return '<div class="vhead"><span class="back">◄ BACK</span><span>' + code + '</span><span class="jp">' + esc(jp) + '</span></div>';
+}
+
+/* ---------- capture view ---------- */
+function viewCapture() {
+  var catOpts = CATS.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+  var typeOpts = Object.keys(TYPES).map(function (k) { return '<option value="' + k + '">' + TYPES[k] + '</option>'; }).join('');
+  var tagList = allTags().map(function (t) { return '<option value="' + esc(t) + '">'; }).join('');
+  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    vhead('CAPTURE', '知識を登録 — タイトルだけで保存できます') +
+    '<div class="vbody">' +
+    '<div class="field"><label>TITLE <em>*必須</em></label><input type="text" id="f-title" placeholder="例: 水面の動きがゴムっぽく見える原因" autocomplete="off"></div>' +
+    '<div class="field"><label>ONE LINER — 一言メモ</label><input type="text" id="f-one" placeholder="例: 水っぽさは法線・反射・リップルで出す" autocomplete="off"></div>' +
+    '<details class="adv"><summary>詳細を追加（あとからでもOK）</summary>' +
+      '<div class="field" style="margin-top:10px;"><label>BODY — 本文メモ</label><textarea id="f-body" placeholder="詰まった原因、解決策、気づきなど"></textarea></div>' +
+      '<div class="grid2">' +
+        '<div class="field"><label>CATEGORY — 大分類</label><select id="f-cat">' + catOpts + '</select></div>' +
+        '<div class="field"><label>SUB — 中分類（自由）</label><input type="text" id="f-sub" placeholder="例: 水表現" autocomplete="off"></div>' +
+      '</div>' +
+      '<div class="field"><label>TAGS — カンマ区切り</label><input type="text" id="f-tags" list="taglist" placeholder="例: WPO, Normal, Water" autocomplete="off"><datalist id="taglist">' + tagList + '</datalist></div>' +
+      '<div class="grid2">' +
+        '<div class="field"><label>TYPE — 知識タイプ</label><select id="f-type">' + typeOpts + '</select></div>' +
+        '<div class="field"><label>IMPORTANCE — 重要度</label><select id="f-imp"><option value="1">◆◇◇</option><option value="2">◆◆◇</option><option value="3">◆◆◆</option></select></div>' +
+      '</div>' +
+      '<div class="field"><label>LINK — 参考リンク</label><input type="url" id="f-link" placeholder="https://" autocomplete="off"></div>' +
+    '</details>' +
+    '<div class="btnrow"><button class="btn primary" id="f-save">保存 ▸ REGISTER</button></div>' +
+    '<div class="hint">画像添付とAI整理はこのあとのバージョンで実装予定。保存後も続けて登録できます。</div>' +
+    '</div></div>';
+  return function () {
+    openView(html, function (v) {
+      var lastCat = localStorage.getItem('kx-last-cat');
+      if (lastCat) $('#f-cat', v).value = lastCat;
+      $('#f-title', v).focus();
+      $('#f-save', v).addEventListener('click', function () {
+        var title = $('#f-title', v).value.trim();
+        if (!title) { showToast('タイトルを入力してください'); $('#f-title', v).focus(); return; }
+        var cat = $('#f-cat', v).value;
+        var sub = $('#f-sub', v).value.trim();
+        var link = $('#f-link', v).value.trim();
+        var rec = newRecord({
+          title: title,
+          oneLiner: $('#f-one', v).value.trim(),
+          body: $('#f-body', v).value.trim(),
+          category: sub ? cat + '/' + sub : cat,
+          tags: $('#f-tags', v).value.split(/[,、]/).map(function (t) { return t.trim(); }).filter(Boolean),
+          type: $('#f-type', v).value,
+          importance: parseInt($('#f-imp', v).value, 10),
+          links: link ? [link] : []
+        });
+        localStorage.setItem('kx-last-cat', cat);
+        saveRecord(rec).then(function () {
+          renderHome();
+          showToast('REGISTERED ▸ ' + rec.id + ' 「' + rec.title.slice(0, 14) + '」');
+          $('#f-title', v).value = ''; $('#f-one', v).value = ''; $('#f-body', v).value = '';
+          $('#f-tags', v).value = ''; $('#f-link', v).value = ''; $('#f-sub', v).value = '';
+          $('#f-title', v).focus();
+        });
+      });
+    });
+  };
+}
+
+/* ---------- list view ---------- */
+function parseQuery(hash) {
+  var i = hash.indexOf('?');
+  return new URLSearchParams(i >= 0 ? hash.slice(i + 1) : '');
+}
+function viewList(q) {
+  var catOpts = '<option value="">全カテゴリ</option>' + CATS.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+  var stOpts = '<option value="">全状態</option>' + Object.keys(STATUS).map(function (k) { return '<option value="' + k + '">' + STATUS[k] + '</option>'; }).join('');
+  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    vhead('RECORDS', '知識データベース一覧') +
+    '<div class="vbody">' +
+    '<div class="field"><input type="search" id="l-q" placeholder="検索…（タイトル / 一言 / 本文 / タグ）" enterkeyhint="search"></div>' +
+    '<div class="filters">' +
+      '<select id="l-cat">' + catOpts + '</select>' +
+      '<select id="l-status">' + stOpts + '</select>' +
+      '<button class="btn fav-toggle" id="l-fav">★ お気に入り</button>' +
+    '</div>' +
+    '<div class="qresult" id="l-count"></div>' +
+    '<div class="listgrid" id="l-grid"></div>' +
+    '</div></div>';
+  return function () {
+    openView(html, function (v) {
+      var qEl = $('#l-q', v), catEl = $('#l-cat', v), stEl = $('#l-status', v), favEl = $('#l-fav', v);
+      qEl.value = q.get('q') || '';
+      catEl.value = q.get('cat') || '';
+      stEl.value = q.get('status') || '';
+      var fav = q.get('fav') === '1';
+      favEl.classList.toggle('on', fav);
+
+      function apply() {
+        var query = qEl.value.trim().toLowerCase();
+        var cat = catEl.value, st = stEl.value;
+        var list = state.records.filter(function (r) {
+          if (st ? r.status !== st : r.status === 'archived') return false;
+          if (cat && (r.category || '').split('/')[0] !== cat) return false;
+          if (fav && !r.favorite) return false;
+          if (query) {
+            var hay = (r.title + ' ' + (r.oneLiner || '') + ' ' + (r.body || '') + ' ' + (r.tags || []).join(' ') + ' ' + (r.category || '')).toLowerCase();
+            if (hay.indexOf(query) < 0) return false;
+          }
+          return true;
+        }).sort(function (a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); });
+        $('#l-count', v).innerHTML = 'QUERY RESULT: <span>' + list.length + '</span> RECORDS';
+        $('#l-grid', v).innerHTML = list.length ? list.map(cardHTML).join('') :
+          '<div class="empty" style="grid-column:1/-1;"><div class="big">NO MATCH</div>条件に一致する知識がありません</div>';
+        var p = new URLSearchParams();
+        if (qEl.value.trim()) p.set('q', qEl.value.trim());
+        if (cat) p.set('cat', cat);
+        if (st) p.set('status', st);
+        if (fav) p.set('fav', '1');
+        var s = p.toString();
+        history.replaceState(null, '', '#/list' + (s ? '?' + s : ''));
+      }
+      qEl.addEventListener('input', apply);
+      catEl.addEventListener('change', apply);
+      stEl.addEventListener('change', apply);
+      favEl.addEventListener('click', function () { fav = !fav; favEl.classList.toggle('on', fav); apply(); });
+      bindCards($('#l-grid', v));
+      apply();
+    });
+  };
+}
+
+/* ---------- detail view ---------- */
+function viewDetail(id) {
+  return function () {
+    var r = byId(id);
+    if (!r) { showToast('RECORD NOT FOUND: ' + id); location.hash = '#/list'; return; }
+    var imp = '◆◆◆'.slice(0, r.importance) + '◇◇◇'.slice(0, 3 - r.importance);
+    var aiHtml;
+    if (r.ai && r.ai.summary) {
+      aiHtml =
+        '<div class="sec"><div class="shead">AI SUMMARY — 要約</div><div class="sbody">' + esc(r.ai.summary) + '</div></div>' +
+        (r.ai.keyPoints && r.ai.keyPoints.length ? '<div class="sec"><div class="shead">KEY POINTS — 重要ポイント</div><div class="sbody"><ul>' + r.ai.keyPoints.map(function (k) { return '<li>' + esc(k) + '</li>'; }).join('') + '</ul></div></div>' : '') +
+        (r.ai.terms && r.ai.terms.length ? '<div class="sec"><div class="shead">TERMS — 技術語</div><div class="sbody">' + r.ai.terms.map(function (t) { return '<div class="term"><b>' + esc(t.term) + '</b> — ' + esc(t.desc) + '</div>'; }).join('') + '</div></div>' : '') +
+        (r.ai.nextKeywords && r.ai.nextKeywords.length ? '<div class="sec"><div class="shead">NEXT — 次に調べる</div><div class="sbody">' + r.ai.nextKeywords.map(function (k) { return '<span class="tag" style="margin-right:6px;">' + esc(k) + '</span>'; }).join('') + '</div></div>' : '');
     } else {
-      addEventListener('deviceorientation', onOrient);
+      aiHtml = '<div class="sec"><div class="shead">AI ANALYSIS</div><div class="sbody dim">AI整理はまだ実行されていません（Phase 2で実装予定）</div></div>';
     }
+    var logs = (r.appendLog || []).map(function (l) { return '<div class="log"><span class="d">' + esc(l.date) + '</span>' + esc(l.text) + '</div>'; }).join('');
+    var used = (r.usedIn || []).map(function (u) { return '<div class="log"><span class="d">' + esc(u.date) + '</span><b>' + esc(u.project) + '</b> — ' + esc(u.note || '') + '</div>'; }).join('');
+    var links = (r.links || []).map(function (u) { return '<div><a href="' + esc(u) + '" target="_blank" rel="noopener" style="color:var(--cyan);font-size:12px;word-break:break-all;">' + esc(u) + '</a></div>'; }).join('');
+
+    var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+      vhead('RECORD ' + esc(r.id), 'STATUS: ' + (STATUS[r.status] || r.status)) +
+      '<div class="vbody">' +
+      '<div class="dhead"><span class="kid">' + esc(r.id) + '</span>' +
+        '<span class="chip ' + esc(r.status) + '" style="margin-left:0;">' + (STATUS[r.status] || r.status) + '</span>' +
+        '<span class="imp">' + imp + '</span>' +
+        '<span class="tag">' + (TYPES[r.type] || r.type) + '</span>' +
+        '<span class="star' + (r.favorite ? ' on' : '') + '" id="d-star" style="margin-left:auto;">★</span></div>' +
+      '<div class="dtitle">' + esc(r.title) + '</div>' +
+      '<div class="done">' + esc(r.oneLiner || '') + '</div>' +
+      '<div class="dmeta"><span class="cat">' + esc(r.category || '未分類') + '</span>' +
+        (r.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
+        '<span class="date">CREATED ' + fmtDate(r.createdAt) + ' // UPDATED ' + fmtDate(r.updatedAt) + '</span></div>' +
+      '<div class="sec"><div class="shead">MEMO — 自分のメモ</div><div class="sbody">' + (r.body ? esc(r.body) : '<span class="dim" style="color:var(--muted);">（本文メモなし — 編集で追加できます）</span>') + '</div></div>' +
+      (links ? '<div class="sec"><div class="shead">LINKS — 参考リンク</div><div class="sbody">' + links + '</div></div>' : '') +
+      aiHtml +
+      (logs ? '<div class="sec"><div class="shead">APPEND LOG — 追記</div><div class="sbody loglist">' + logs + '</div></div>' : '') +
+      (used ? '<div class="sec"><div class="shead">USED IN — 使用履歴</div><div class="sbody loglist">' + used + '</div></div>' : '') +
+      '<div class="btnrow">' +
+        '<button class="btn" id="d-edit">✎ 編集</button>' +
+        '<button class="btn danger" id="d-del">削除</button>' +
+      '</div>' +
+      '</div></div>';
+
+    openView(html, function (v) {
+      $('#d-star', v).addEventListener('click', function () {
+        r.favorite = !r.favorite;
+        saveRecord(r).then(function () {
+          $('#d-star', v).classList.toggle('on', r.favorite);
+          renderHome();
+        });
+      });
+      $('#d-del', v).addEventListener('click', function () {
+        if (!confirm(r.id + '「' + r.title + '」を削除しますか？（元に戻せません）')) return;
+        dbDel(r.id).then(function () {
+          state.records = state.records.filter(function (x) { return x.id !== r.id; });
+          renderHome();
+          showToast('DELETED ▸ ' + r.id);
+          location.hash = '#/list';
+        });
+      });
+      $('#d-edit', v).addEventListener('click', function () { renderEdit(r); });
+    });
+  };
+}
+function renderEdit(r) {
+  var catOpts = CATS.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
+  var typeOpts = Object.keys(TYPES).map(function (k) { return '<option value="' + k + '"' + (r.type === k ? ' selected' : '') + '>' + TYPES[k] + '</option>'; }).join('');
+  var parts = (r.category || '').split('/');
+  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    vhead('EDIT ' + esc(r.id), '編集') +
+    '<div class="vbody">' +
+    '<div class="field"><label>TITLE <em>*必須</em></label><input type="text" id="e-title" value="' + esc(r.title) + '"></div>' +
+    '<div class="field"><label>ONE LINER</label><input type="text" id="e-one" value="' + esc(r.oneLiner || '') + '"></div>' +
+    '<div class="field"><label>BODY</label><textarea id="e-body">' + esc(r.body || '') + '</textarea></div>' +
+    '<div class="grid2">' +
+      '<div class="field"><label>CATEGORY</label><select id="e-cat">' + catOpts + '</select></div>' +
+      '<div class="field"><label>SUB</label><input type="text" id="e-sub" value="' + esc(parts.slice(1).join('/')) + '"></div>' +
+    '</div>' +
+    '<div class="field"><label>TAGS — カンマ区切り</label><input type="text" id="e-tags" value="' + esc((r.tags || []).join(', ')) + '"></div>' +
+    '<div class="grid2">' +
+      '<div class="field"><label>TYPE</label><select id="e-type">' + typeOpts + '</select></div>' +
+      '<div class="field"><label>IMPORTANCE</label><select id="e-imp"><option value="1"' + (r.importance === 1 ? ' selected' : '') + '>◆◇◇</option><option value="2"' + (r.importance === 2 ? ' selected' : '') + '>◆◆◇</option><option value="3"' + (r.importance === 3 ? ' selected' : '') + '>◆◆◆</option></select></div>' +
+    '</div>' +
+    '<div class="btnrow"><button class="btn primary" id="e-save">保存</button><button class="btn" id="e-cancel">キャンセル</button></div>' +
+    '</div></div>';
+  openView(html, function (v) {
+    if (CATS.indexOf(parts[0]) >= 0) $('#e-cat', v).value = parts[0];
+    $('#e-save', v).addEventListener('click', function () {
+      var title = $('#e-title', v).value.trim();
+      if (!title) { showToast('タイトルは必須です'); return; }
+      r.title = title;
+      r.oneLiner = $('#e-one', v).value.trim();
+      r.body = $('#e-body', v).value.trim();
+      var sub = $('#e-sub', v).value.trim();
+      r.category = sub ? $('#e-cat', v).value + '/' + sub : $('#e-cat', v).value;
+      r.tags = $('#e-tags', v).value.split(/[,、]/).map(function (t) { return t.trim(); }).filter(Boolean);
+      r.type = $('#e-type', v).value;
+      r.importance = parseInt($('#e-imp', v).value, 10);
+      saveRecord(r).then(function () {
+        renderHome();
+        showToast('SAVED ▸ ' + r.id);
+        viewDetail(r.id)();
+      });
+    });
+    $('#e-cancel', v).addEventListener('click', function () { viewDetail(r.id)(); });
+  });
+}
+
+/* ---------- settings view ---------- */
+function viewSettings() {
+  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    vhead('SETTINGS', '設定・バックアップ') +
+    '<div class="vbody">' +
+    '<div class="sec"><div class="shead">BACKUP — JSONエクスポート / インポート</div><div class="sbody">' +
+      '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">データはこの端末のブラウザ（IndexedDB）に保存されています。定期的にエクスポートしてバックアップしてください。UE版はこのJSONを読み込みます。</div>' +
+      '<div class="btnrow" style="margin-top:0;">' +
+        '<button class="btn primary" id="s-export">⬇ エクスポート</button>' +
+        '<button class="btn" id="s-import">⬆ インポート</button>' +
+        '<input type="file" id="s-file" accept=".json,application/json" style="display:none;">' +
+      '</div>' +
+    '</div></div>' +
+    '<div class="sec"><div class="shead">INFO</div><div class="sbody dim">Knowledge Codex — Phase 1<br>登録・一覧・詳細・検索・お気に入り・バックアップまで実装済み。<br>次: AI整理（Phase 2）→ 画像添付・用語集（Phase 3）</div></div>' +
+    '</div></div>';
+  return function () {
+    openView(html, function (v) {
+      $('#s-export', v).addEventListener('click', function () {
+        var blob = new Blob([JSON.stringify({ app: 'knowledge-codex', exportedAt: new Date().toISOString(), records: state.records }, null, 2)], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'knowledge-codex-' + today() + '.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        showToast('EXPORTED ▸ ' + state.records.length + ' RECORDS');
+      });
+      $('#s-import', v).addEventListener('click', function () { $('#s-file', v).click(); });
+      $('#s-file', v).addEventListener('change', function (e) {
+        var f = e.target.files[0];
+        if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          try {
+            var data = JSON.parse(reader.result);
+            var recs = Array.isArray(data) ? data : data.records;
+            if (!Array.isArray(recs)) throw new Error('records array not found');
+            if (!confirm(recs.length + '件を取り込みます。同じIDの知識は上書きされます。よろしいですか？')) return;
+            Promise.all(recs.map(function (rec) {
+              if (!rec.id || !rec.title) return Promise.resolve();
+              var i = state.records.findIndex(function (x) { return x.id === rec.id; });
+              if (i >= 0) state.records[i] = rec; else state.records.push(rec);
+              return dbPut(rec);
+            })).then(function () {
+              renderHome();
+              showToast('IMPORTED ▸ ' + recs.length + ' RECORDS');
+            });
+          } catch (err) {
+            showToast('読み込み失敗: JSONの形式が不正です');
+          }
+        };
+        reader.readAsText(f);
+      });
+    });
+  };
+}
+
+/* ---------- router ---------- */
+function route() {
+  var h = location.hash || '#/';
+  var m;
+  if (h === '#/' || h === '' || h === '#') { closeView(); renderHome(); return; }
+  if (h.indexOf('#/capture') === 0) { viewCapture()(); return; }
+  if (h.indexOf('#/list') === 0) { viewList(parseQuery(h))(); return; }
+  if ((m = h.match(/^#\/detail\/([A-Za-z]+-\d+)/))) { viewDetail(m[1])(); return; }
+  if (h.indexOf('#/settings') === 0) { viewSettings()(); return; }
+  closeView(); renderHome();
+}
+addEventListener('hashchange', route);
+
+/* ---------- home wiring ---------- */
+document.getElementById('go-home').addEventListener('click', function () { location.hash = '#/'; });
+document.getElementById('go-settings').addEventListener('click', function () { location.hash = '#/settings'; });
+document.getElementById('btn-capture').addEventListener('click', function () { location.hash = '#/capture'; });
+document.getElementById('panel-records').addEventListener('click', function (e) {
+  if (!e.target.closest('.kcard')) location.hash = '#/list';
+});
+bindCards(document.getElementById('recent-body'));
+document.getElementById('archive-body').addEventListener('click', function (e) {
+  var m = e.target.closest('.meter');
+  if (m) { e.stopPropagation(); location.hash = '#/list?cat=' + encodeURIComponent(m.dataset.cat); }
+});
+document.getElementById('system-body').addEventListener('click', function (e) {
+  var tag = e.target.closest('[data-tag]');
+  if (tag) { e.stopPropagation(); location.hash = '#/list?q=' + encodeURIComponent(tag.dataset.tag); return; }
+  var row = e.target.closest('[data-go]');
+  if (row) { e.stopPropagation(); location.hash = row.dataset.go; }
+});
+var searchbox = document.getElementById('searchbox');
+searchbox.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') location.hash = '#/list?q=' + encodeURIComponent(searchbox.value.trim());
+});
+addEventListener('keydown', function (e) {
+  if (e.key === '/' && !viewEl.classList.contains('open') &&
+      !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) {
+    e.preventDefault();
+    searchbox.focus();
   }
+});
 
-  function draw(t) {
-    t = t || 0;
-    if (t - lastInput > 4000) {
-      targRy = Math.sin(t * 0.00035) * 2.2;
-      targRx = Math.cos(t * 0.00027) * 1.4;
-    }
-    curRx += (targRx - curRx) * 0.055;
-    curRy += (targRy - curRy) * 0.055;
-    stage.style.setProperty('--rx', curRx.toFixed(3) + 'deg');
-    stage.style.setProperty('--ry', curRy.toFixed(3) + 'deg');
+/* ---------- clock ---------- */
+function tick() {
+  var d = new Date();
+  function z(n) { return (n < 10 ? '0' : '') + n; }
+  document.getElementById('clock').textContent = z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+}
+setInterval(tick, 1000);
+tick();
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    var g = ctx.createRadialGradient(canvas.width/2, canvas.height*0.42, 40, canvas.width/2, canvas.height*0.42, canvas.width*0.7);
-    g.addColorStop(0, 'rgba(20,60,90,0.28)');
-    g.addColorStop(1, 'rgba(4,7,13,0)');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    var parX = curRy / 7, parY = curRx / 5;
-    for (var i = 0; i < particles.length; i++) {
-      var p = particles[i];
-      p.y += p.vy;
-      if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
-      ctx.beginPath();
-      ctx.arc(p.x + parX * 46 * p.z, p.y - parY * 30 * p.z, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(127,232,255,' + p.a + ')';
-      ctx.fill();
-    }
-    requestAnimationFrame(draw);
+/* ---------- background + parallax ---------- */
+var canvas = document.getElementById('bg');
+var ctx = canvas.getContext('2d');
+var particles = [];
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+addEventListener('resize', resize);
+resize();
+var COUNT = Math.min(70, Math.floor(innerWidth / 14));
+for (var i = 0; i < COUNT; i++) {
+  particles.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    z: Math.random() * 0.8 + 0.2,
+    r: Math.random() * 1.6 + 0.4,
+    vy: -(Math.random() * 0.22 + 0.05),
+    a: Math.random() * 0.5 + 0.15
+  });
+}
+
+var stage = document.getElementById('stage');
+var targRx = 0, targRy = 0, curRx = 0, curRy = 0;
+var lastInput = 0;
+
+function fitStage() {
+  if (matchMedia('(min-width: 761px)').matches) {
+    var s = Math.min(1, (innerHeight - 90) / 660, (innerWidth - 32) / 1100);
+    stage.style.setProperty('--s', Math.max(0.45, s).toFixed(3));
+  } else {
+    stage.style.setProperty('--s', '1');
+  }
+}
+addEventListener('resize', fitStage);
+fitStage();
+
+addEventListener('pointermove', function (e) {
+  if (!matchMedia('(hover: hover)').matches) return;
+  lastInput = performance.now();
+  targRy = ((e.clientX / innerWidth) - 0.5) * 7;
+  targRx = ((e.clientY / innerHeight) - 0.5) * -5;
+});
+
+function onOrient(e) {
+  if (e.gamma == null && e.beta == null) return;
+  lastInput = performance.now();
+  var g = Math.max(-25, Math.min(25, e.gamma || 0));
+  var b = Math.max(-25, Math.min(25, (e.beta || 45) - 45));
+  targRy = g / 25 * 5;
+  targRx = b / 25 * -3;
+}
+if (!matchMedia('(hover: hover)').matches) {
+  if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+    var askGyro = function () {
+      DeviceOrientationEvent.requestPermission().then(function (r) {
+        if (r === 'granted') addEventListener('deviceorientation', onOrient);
+      }).catch(function () {});
+      removeEventListener('touchend', askGyro);
+    };
+    addEventListener('touchend', askGyro);
+  } else {
+    addEventListener('deviceorientation', onOrient);
+  }
+}
+
+function draw(t) {
+  t = t || 0;
+  if (t - lastInput > 4000) {
+    targRy = Math.sin(t * 0.00035) * 2.2;
+    targRx = Math.cos(t * 0.00027) * 1.4;
+  }
+  curRx += (targRx - curRx) * 0.055;
+  curRy += (targRy - curRy) * 0.055;
+  stage.style.setProperty('--rx', curRx.toFixed(3) + 'deg');
+  stage.style.setProperty('--ry', curRy.toFixed(3) + 'deg');
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  var g = ctx.createRadialGradient(canvas.width / 2, canvas.height * 0.42, 40, canvas.width / 2, canvas.height * 0.42, canvas.width * 0.7);
+  g.addColorStop(0, 'rgba(20,60,90,0.28)');
+  g.addColorStop(1, 'rgba(4,7,13,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  var parX = curRy / 7, parY = curRx / 5;
+  for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+    p.y += p.vy;
+    if (p.y < -4) { p.y = canvas.height + 4; p.x = Math.random() * canvas.width; }
+    ctx.beginPath();
+    ctx.arc(p.x + parX * 46 * p.z, p.y - parY * 30 * p.z, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(127,232,255,' + p.a + ')';
+    ctx.fill();
   }
   requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
 
-  var toast = document.getElementById('toast');
-  var toastTimer = null;
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2200);
+/* ---------- boot ---------- */
+openDB().then(function (d) {
+  db = d;
+  return dbAll();
+}).then(function (recs) {
+  if (recs.length === 0) {
+    var seeds = seedRecords();
+    state.records = seeds;
+    return Promise.all(seeds.map(dbPut)).then(function () { return seeds; });
   }
-  document.querySelectorAll('.panel[data-module]').forEach(function (p) {
-    p.addEventListener('click', function () {
-      showToast('MODULE: ' + p.dataset.module + ' // Phase 1 で実装予定');
-    });
-  });
-  document.getElementById('btn-capture').addEventListener('click', function () {
-    showToast('CAPTURE — 知識登録 // Phase 1 で実装予定');
-  });
-  document.getElementById('searchbox').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') showToast('SEARCH // Phase 1 で実装予定');
-  });
-  addEventListener('keydown', function (e) {
-    if (e.key === '/' && document.activeElement !== document.getElementById('searchbox')) {
-      e.preventDefault();
-      document.getElementById('searchbox').focus();
-    }
-  });
-
-  function tick() {
-    var d = new Date();
-    function z(n) { return (n < 10 ? '0' : '') + n; }
-    document.getElementById('clock').textContent = z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
-  }
-  setInterval(tick, 1000);
-  tick();
+  state.records = recs;
+}).then(function () {
+  renderHome();
+  route();
+}).catch(function (err) {
+  showToast('DB初期化エラー: ' + err);
+});
 </script>
 </body>
 </html>
