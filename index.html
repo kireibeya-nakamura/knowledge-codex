@@ -111,10 +111,17 @@
   .p-head .jp { margin-left: auto; color: var(--muted); letter-spacing: 0; font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; }
   .p-body { padding: 12px; }
 
-  .float { animation: bob 7s ease-in-out infinite alternate; }
-  .float.d1 { animation-delay: -2.2s; }
-  .float.d2 { animation-delay: -4.4s; }
+  .float { animation: panelIn 0.55s ease-out both, bob 7s ease-in-out infinite alternate; }
+  .float.d1 { animation-delay: 0.18s, -2.2s; }
+  .float.d2 { animation-delay: 0.36s, -4.4s; }
   @keyframes bob { from { transform: translateY(-4px); } to { transform: translateY(5px); } }
+  @keyframes panelIn { from { opacity: 0; } to { opacity: 1; } }
+  #console { animation: panelIn 0.55s ease-out 0.5s both; }
+  .capture { animation: glowPulse 3.2s ease-in-out infinite; }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(127,232,255,0.35); }
+    50% { box-shadow: 0 0 24px rgba(127,232,255,0.65); }
+  }
 
   #panel-archive { left: 0; top: 70px; width: 290px; transform: rotateY(26deg) translateZ(-30px); }
   #panel-records { left: 50%; top: 26px; width: 450px; margin-left: -225px; transform: translateZ(70px); }
@@ -311,6 +318,45 @@
   .applyform.show { display: flex; }
   .applyform input { flex: 1; min-width: 140px; }
 
+  .kcard .thumb.has-img { background-size: cover; background-position: center; color: transparent; }
+
+  .ltable { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .ltable th {
+    font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--cyan-dim);
+    text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(47,185,216,0.4); white-space: nowrap;
+  }
+  .ltable td { padding: 7px 8px; border-bottom: 1px dashed rgba(47,185,216,0.18); color: var(--text); white-space: nowrap; }
+  .ltable td.tt { white-space: normal; min-width: 160px; }
+  .ltable tbody tr { cursor: pointer; }
+  .ltable tbody tr:hover td { background: rgba(47,185,216,0.08); }
+  .ltable .kid { font-family: var(--mono); color: var(--cyan-dim); font-size: 11px; }
+
+  .attgrid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .attgrid .att {
+    position: relative; width: 84px; height: 84px; border: 1px solid rgba(47,185,216,0.5); border-radius: 4px;
+    overflow: hidden; cursor: pointer; background: rgba(6,16,28,0.8);
+  }
+  .attgrid .att img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .attgrid .att .rm {
+    position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+    background: rgba(4,7,13,0.85); color: #ff9a9a; border: 1px solid rgba(255,120,120,0.5); border-radius: 3px;
+    font-size: 11px; line-height: 16px; text-align: center; cursor: pointer;
+  }
+  input[type="file"] { color: var(--muted); font-size: 12px; }
+
+  .lightbox {
+    position: fixed; inset: 0; z-index: 60; background: rgba(4,7,13,0.92);
+    display: flex; align-items: center; justify-content: center; cursor: zoom-out;
+  }
+  .lightbox img { max-width: 94vw; max-height: 92vh; border: 1px solid var(--line-bright); border-radius: 4px; box-shadow: 0 0 40px rgba(47,185,216,0.4); }
+
+  .gterm { border: 1px solid rgba(47,185,216,0.25); border-radius: 5px; padding: 10px 12px; margin-bottom: 10px; }
+  .gterm .gname { color: var(--cyan); font-weight: 700; font-size: 14px; }
+  .gterm .gdesc { font-size: 12px; color: var(--text); margin: 4px 0 6px; line-height: 1.7; }
+  .gterm .gsrc { display: flex; flex-wrap: wrap; gap: 6px; }
+  .gterm .gsrc .tag { cursor: pointer; }
+  .gterm .gsrc .tag:hover { color: var(--cyan); border-color: var(--cyan); }
+
   #toast {
     position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
     z-index: 40; opacity: 0; pointer-events: none;
@@ -439,14 +485,91 @@ var TYPE_CODE = { solution: 'SOL', insight: 'INS', term: 'TRM', recipe: 'RCP', p
 var STATUS = { captured: '未整理', enriched: 'AI整理済', applied: '使用済', archived: '保管' };
 
 /* ---------- IndexedDB ---------- */
-var DB_NAME = 'knowledge-codex', DB_STORE = 'records', db = null;
+var DB_NAME = 'knowledge-codex', DB_STORE = 'records', FILE_STORE = 'files', db = null;
 function openDB() {
   return new Promise(function (res, rej) {
-    var r = indexedDB.open(DB_NAME, 1);
-    r.onupgradeneeded = function () { r.result.createObjectStore(DB_STORE, { keyPath: 'id' }); };
+    var r = indexedDB.open(DB_NAME, 2);
+    r.onupgradeneeded = function () {
+      if (!r.result.objectStoreNames.contains(DB_STORE)) r.result.createObjectStore(DB_STORE, { keyPath: 'id' });
+      if (!r.result.objectStoreNames.contains(FILE_STORE)) r.result.createObjectStore(FILE_STORE, { keyPath: 'id' });
+    };
     r.onsuccess = function () { res(r.result); };
     r.onerror = function () { rej(r.error); };
   });
+}
+function dbPutFile(f) {
+  return new Promise(function (res, rej) {
+    var tx = db.transaction(FILE_STORE, 'readwrite');
+    tx.objectStore(FILE_STORE).put(f);
+    tx.oncomplete = function () { res(); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
+function dbGetFile(id) {
+  return new Promise(function (res, rej) {
+    var tx = db.transaction(FILE_STORE, 'readonly').objectStore(FILE_STORE).get(id);
+    tx.onsuccess = function () { res(tx.result || null); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
+function dbDelFile(id) {
+  return new Promise(function (res, rej) {
+    var tx = db.transaction(FILE_STORE, 'readwrite');
+    tx.objectStore(FILE_STORE).delete(id);
+    tx.oncomplete = function () { res(); };
+    tx.onerror = function () { rej(tx.error); };
+  });
+}
+function newFileId() {
+  return 'F-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7);
+}
+function compressImage(file) {
+  return new Promise(function (res, rej) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () {
+      var MAX = 1280;
+      var w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX || h > MAX) {
+        var scale = MAX / Math.max(w, h);
+        w = Math.round(w * scale); h = Math.round(h * scale);
+      }
+      var c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(function (blob) {
+        if (blob) res(blob); else rej(new Error('画像の変換に失敗'));
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror = function () { URL.revokeObjectURL(url); rej(new Error('画像を読み込めません')); };
+    img.src = url;
+  });
+}
+function blobToDataURL(blob) {
+  return new Promise(function (res, rej) {
+    var fr = new FileReader();
+    fr.onload = function () { res(fr.result); };
+    fr.onerror = function () { rej(fr.error); };
+    fr.readAsDataURL(blob);
+  });
+}
+function hydrateThumbs(container) {
+  [].forEach.call(container.querySelectorAll('.thumb[data-thumb]'), function (el) {
+    dbGetFile(el.dataset.thumb).then(function (f) {
+      if (f && f.blob) {
+        el.classList.add('has-img');
+        el.style.backgroundImage = 'url(' + URL.createObjectURL(f.blob) + ')';
+      }
+    });
+  });
+}
+function showLightbox(url) {
+  var box = document.createElement('div');
+  box.className = 'lightbox';
+  box.innerHTML = '<img src="' + url + '">';
+  box.addEventListener('click', function () { document.body.removeChild(box); });
+  document.body.appendChild(box);
 }
 function dbAll() {
   return new Promise(function (res, rej) {
@@ -556,8 +679,9 @@ function cardHTML(r) {
   var tags = (r.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
   var more = (r.tags || []).length > 3 ? '<span class="tag">+' + ((r.tags || []).length - 3) + '</span>' : '';
   var imp = '◆◆◆'.slice(0, r.importance) + '◇◇◇'.slice(0, 3 - r.importance);
+  var thumbAttr = (r.attachments && r.attachments.length) ? ' data-thumb="' + esc(r.attachments[0]) + '"' : '';
   return '<div class="kcard" data-id="' + esc(r.id) + '">' +
-    '<div class="thumb">' + (TYPE_CODE[r.type] || 'REC') + '</div>' +
+    '<div class="thumb"' + thumbAttr + '>' + (TYPE_CODE[r.type] || 'REC') + '</div>' +
     '<div class="info">' +
       '<div class="row1"><span class="kid">' + esc(r.id) + '</span>' +
       '<span class="star' + (r.favorite ? ' on' : '') + '" data-star="' + esc(r.id) + '">★</span></div>' +
@@ -609,24 +733,40 @@ function renderHome() {
   }).join('');
 
   var recent = active.slice().sort(function (a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); }).slice(0, 3);
-  document.getElementById('recent-body').innerHTML =
+  var recentBody = document.getElementById('recent-body');
+  recentBody.innerHTML =
     recent.length ? recent.map(cardHTML).join('') :
     '<div class="empty"><div class="big">NO RECORDS</div>+ CAPTURE から最初の知識を登録</div>';
+  hydrateThumbs(recentBody);
 
   var inbox = active.filter(function (r) { return r.status === 'captured'; }).length;
   var applied = active.filter(function (r) { return r.status === 'applied'; }).length;
   var month = new Date().toISOString().slice(0, 7);
   var monthly = active.filter(function (r) { return (r.createdAt || '').slice(0, 7) === month; }).length;
-  var recentTags = [];
+  var recentTerms = [];
   recent.concat(active).forEach(function (r) {
-    (r.tags || []).forEach(function (t) { if (recentTags.indexOf(t) < 0) recentTags.push(t); });
+    ((r.ai && r.ai.terms) || []).forEach(function (t) {
+      if (t.term && recentTerms.indexOf(t.term) < 0) recentTerms.push(t.term);
+    });
   });
+  var termChips, termLabel;
+  if (recentTerms.length) {
+    termLabel = 'TERMS — 最近覚えた技術語（タップで用語集へ）';
+    termChips = recentTerms.slice(0, 5).map(function (t) { return '<span class="tag" data-term="' + esc(t) + '">' + esc(t) + '</span>'; }).join('');
+  } else {
+    var recentTags = [];
+    recent.concat(active).forEach(function (r) {
+      (r.tags || []).forEach(function (t) { if (recentTags.indexOf(t) < 0) recentTags.push(t); });
+    });
+    termLabel = 'TAGS — 最近のタグ';
+    termChips = recentTags.slice(0, 5).map(function (t) { return '<span class="tag" data-tag="' + esc(t) + '">' + esc(t) + '</span>'; }).join('');
+  }
   document.getElementById('system-body').innerHTML =
     '<div class="sysrow" data-go="#/list?status=captured"><span>INBOX — AI整理待ち</span><span class="v' + (inbox ? ' warn' : '') + '">' + inbox + '</span></div>' +
     '<div class="sysrow" data-go="#/list"><span>今月の登録</span><span class="v">' + monthly + '</span></div>' +
     '<div class="sysrow" data-go="#/list?status=applied"><span>使用済（実戦投入）</span><span class="v">' + applied + '</span></div>' +
-    '<div class="sysrow" style="display:block;"><span style="font-size:11px;color:var(--muted);">TAGS — 最近のタグ</span>' +
-    '<div class="terms">' + recentTags.slice(0, 5).map(function (t) { return '<span class="tag" data-tag="' + esc(t) + '">' + esc(t) + '</span>'; }).join('') + '</div></div>';
+    '<div class="sysrow" data-go="#/terms" style="display:block;"><span style="font-size:11px;color:var(--muted);">' + termLabel + '</span>' +
+    '<div class="terms">' + termChips + '</div></div>';
 }
 
 /* ---------- view helpers ---------- */
@@ -666,6 +806,9 @@ function viewCapture() {
         '<div class="field"><label>IMPORTANCE — 重要度</label><select id="f-imp"><option value="1">◆◇◇</option><option value="2">◆◆◇</option><option value="3">◆◆◆</option></select></div>' +
       '</div>' +
       '<div class="field"><label>LINK — 参考リンク</label><input type="url" id="f-link" placeholder="https://" autocomplete="off"></div>' +
+      '<div class="field"><label>IMAGES — 画像添付（スクショはこの画面で Ctrl+V でも貼れます）</label>' +
+        '<input type="file" id="f-img" accept="image/*" multiple>' +
+        '<div id="f-pending" class="attgrid" style="margin-top:8px;"></div></div>' +
     '</details>' +
     '<div class="btnrow"><button class="btn primary" id="f-save">保存 ▸ REGISTER</button><button class="btn" id="f-save-ai">保存してAI整理 ▸</button></div>' +
     '<div class="hint">保存後も続けて登録できます。画像添付はPhase 3で実装予定。</div>' +
@@ -675,6 +818,48 @@ function viewCapture() {
       var lastCat = localStorage.getItem('kx-last-cat');
       if (lastCat) $('#f-cat', v).value = lastCat;
       $('#f-title', v).focus();
+
+      var pending = [];
+      function renderPending() {
+        $('#f-pending', v).innerHTML = pending.map(function (p, i) {
+          return '<div class="att" data-pi="' + i + '"><img src="' + p.url + '"><span class="rm" data-prm="' + i + '">×</span></div>';
+        }).join('');
+      }
+      $('#f-pending', v).addEventListener('click', function (e) {
+        var rm = e.target.closest('[data-prm]');
+        if (rm) {
+          var i = parseInt(rm.dataset.prm, 10);
+          URL.revokeObjectURL(pending[i].url);
+          pending.splice(i, 1);
+          renderPending();
+          return;
+        }
+        var att = e.target.closest('[data-pi]');
+        if (att) showLightbox(pending[parseInt(att.dataset.pi, 10)].url);
+      });
+      function addPending(files) {
+        [].forEach.call(files, function (f) {
+          if (!/^image\//.test(f.type)) return;
+          compressImage(f).then(function (blob) {
+            pending.push({ blob: blob, name: f.name || 'pasted.jpg', url: URL.createObjectURL(blob) });
+            renderPending();
+            var adv = $('details.adv', v);
+            if (adv) adv.open = true;
+            showToast('画像を追加しました（保存時に登録されます）');
+          }).catch(function (e2) { showToast('画像の追加に失敗: ' + e2.message); });
+        });
+      }
+      $('#f-img', v).addEventListener('change', function (e) {
+        addPending(e.target.files);
+        e.target.value = '';
+      });
+      v.addEventListener('paste', function (e) {
+        if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length) {
+          e.preventDefault();
+          addPending(e.clipboardData.files);
+        }
+      });
+
       function doSave(goAI) {
         var title = $('#f-title', v).value.trim();
         if (!title) { showToast('タイトルを入力してください'); $('#f-title', v).focus(); return; }
@@ -692,13 +877,26 @@ function viewCapture() {
           links: link ? [link] : []
         });
         localStorage.setItem('kx-last-cat', cat);
-        saveRecord(rec).then(function () {
+        var fileSaves = pending.map(function (p) {
+          var fid = newFileId();
+          return dbPutFile({ id: fid, name: p.name, type: 'image/jpeg', blob: p.blob, createdAt: new Date().toISOString() })
+            .then(function () { return fid; });
+        });
+        Promise.all(fileSaves).then(function (ids) {
+          rec.attachments = ids;
+          return saveRecord(rec);
+        }).then(function () {
+          pending.forEach(function (p) { URL.revokeObjectURL(p.url); });
+          pending = [];
+          renderPending();
           renderHome();
           if (goAI) { location.hash = '#/ai/' + rec.id; return; }
           showToast('REGISTERED ▸ ' + rec.id + ' 「' + rec.title.slice(0, 14) + '」');
           $('#f-title', v).value = ''; $('#f-one', v).value = ''; $('#f-body', v).value = '';
           $('#f-tags', v).value = ''; $('#f-link', v).value = ''; $('#f-sub', v).value = '';
           $('#f-title', v).focus();
+        }).catch(function (e2) {
+          showToast('保存に失敗: ' + e2.message);
         });
       }
       $('#f-save', v).addEventListener('click', function () { doSave(false); });
@@ -723,18 +921,36 @@ function viewList(q) {
       '<select id="l-cat">' + catOpts + '</select>' +
       '<select id="l-status">' + stOpts + '</select>' +
       '<button class="btn fav-toggle" id="l-fav">★ お気に入り</button>' +
+      '<button class="btn fav-toggle" id="l-view"></button>' +
     '</div>' +
     '<div class="qresult" id="l-count"></div>' +
     '<div class="listgrid" id="l-grid"></div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
-      var qEl = $('#l-q', v), catEl = $('#l-cat', v), stEl = $('#l-status', v), favEl = $('#l-fav', v);
+      var qEl = $('#l-q', v), catEl = $('#l-cat', v), stEl = $('#l-status', v), favEl = $('#l-fav', v), viewEl2 = $('#l-view', v);
       qEl.value = q.get('q') || '';
       catEl.value = q.get('cat') || '';
       stEl.value = q.get('status') || '';
       var fav = q.get('fav') === '1';
       favEl.classList.toggle('on', fav);
+      var viewMode = localStorage.getItem('kx-list-view') || 'card';
+      function viewLabel() { viewEl2.textContent = viewMode === 'card' ? '☰ 表で見る' : '▦ カードで見る'; }
+      viewLabel();
+
+      function tableHTML(list) {
+        var rows = list.map(function (r2) {
+          return '<tr data-id="' + esc(r2.id) + '">' +
+            '<td class="kid">' + esc(r2.id) + '</td>' +
+            '<td class="tt">' + esc(r2.title) + '</td>' +
+            '<td style="font-size:11px;color:var(--cyan-dim);">' + esc((r2.category || '').split('/')[0]) + '</td>' +
+            '<td><span class="chip ' + esc(r2.status) + '" style="margin-left:0;">' + (STATUS[r2.status] || r2.status) + '</span></td>' +
+            '<td style="color:' + (r2.favorite ? 'var(--cyan)' : 'var(--muted)') + ';">★</td>' +
+            '<td style="font-family:var(--mono);font-size:10px;color:var(--muted);">' + fmtDate(r2.updatedAt) + '</td>' +
+          '</tr>';
+        }).join('');
+        return '<div style="overflow-x:auto;"><table class="ltable"><thead><tr><th>ID</th><th>TITLE</th><th>CAT</th><th>STATUS</th><th>★</th><th>UPDATED</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      }
 
       function apply() {
         var query = qEl.value.trim().toLowerCase();
@@ -750,8 +966,16 @@ function viewList(q) {
           return true;
         }).sort(function (a, b) { return (b.updatedAt || '').localeCompare(a.updatedAt || ''); });
         $('#l-count', v).innerHTML = 'QUERY RESULT: <span>' + list.length + '</span> RECORDS';
-        $('#l-grid', v).innerHTML = list.length ? list.map(cardHTML).join('') :
-          '<div class="empty" style="grid-column:1/-1;"><div class="big">NO MATCH</div>条件に一致する知識がありません</div>';
+        var grid = $('#l-grid', v);
+        grid.classList.toggle('listgrid', viewMode === 'card');
+        if (!list.length) {
+          grid.innerHTML = '<div class="empty" style="grid-column:1/-1;"><div class="big">NO MATCH</div>条件に一致する知識がありません</div>';
+        } else if (viewMode === 'table') {
+          grid.innerHTML = tableHTML(list);
+        } else {
+          grid.innerHTML = list.map(cardHTML).join('');
+          hydrateThumbs(grid);
+        }
         var p = new URLSearchParams();
         if (qEl.value.trim()) p.set('q', qEl.value.trim());
         if (cat) p.set('cat', cat);
@@ -764,7 +988,17 @@ function viewList(q) {
       catEl.addEventListener('change', apply);
       stEl.addEventListener('change', apply);
       favEl.addEventListener('click', function () { fav = !fav; favEl.classList.toggle('on', fav); apply(); });
+      viewEl2.addEventListener('click', function () {
+        viewMode = viewMode === 'card' ? 'table' : 'card';
+        localStorage.setItem('kx-list-view', viewMode);
+        viewLabel();
+        apply();
+      });
       bindCards($('#l-grid', v));
+      $('#l-grid', v).addEventListener('click', function (e) {
+        var tr = e.target.closest('tr[data-id]');
+        if (tr) location.hash = '#/detail/' + tr.dataset.id;
+      });
       apply();
     });
   };
@@ -806,6 +1040,10 @@ function viewDetail(id) {
         (r.tags || []).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('') +
         '<span class="date">CREATED ' + fmtDate(r.createdAt) + ' // UPDATED ' + fmtDate(r.updatedAt) + '</span></div>' +
       '<div class="sec"><div class="shead">MEMO — 自分のメモ</div><div class="sbody">' + (r.body ? esc(r.body) : '<span class="dim" style="color:var(--muted);">（本文メモなし — 編集で追加できます）</span>') + '</div></div>' +
+      '<div class="sec"><div class="shead">ATTACHMENTS — 画像（タップで拡大）</div><div class="sbody">' +
+        '<div class="attgrid" id="d-att"></div>' +
+        '<input type="file" id="d-img" accept="image/*" multiple style="margin-top:8px;">' +
+      '</div></div>' +
       (links ? '<div class="sec"><div class="shead">LINKS — 参考リンク</div><div class="sbody">' + links + '</div></div>' : '') +
       aiHtml +
       '<div class="sec"><div class="shead">APPEND LOG — 追記（日付つきで積み上がります）</div><div class="sbody loglist">' + logs +
@@ -836,7 +1074,9 @@ function viewDetail(id) {
       });
       $('#d-del', v).addEventListener('click', function () {
         if (!confirm(r.id + '「' + r.title + '」を削除しますか？（元に戻せません）')) return;
-        dbDel(r.id).then(function () {
+        Promise.all((r.attachments || []).map(dbDelFile)).then(function () {
+          return dbDel(r.id);
+        }).then(function () {
           state.records = state.records.filter(function (x) { return x.id !== r.id; });
           renderHome();
           showToast('DELETED ▸ ' + r.id);
@@ -845,6 +1085,62 @@ function viewDetail(id) {
       });
       $('#d-edit', v).addEventListener('click', function () { renderEdit(r); });
       $('#d-ai', v).addEventListener('click', function () { location.hash = '#/ai/' + r.id; });
+
+      var attUrls = {};
+      function loadAtt() {
+        var grid = $('#d-att', v);
+        var ids = r.attachments || [];
+        if (!ids.length) {
+          grid.innerHTML = '<span style="font-size:11px;color:var(--muted);">画像なし — 下の「ファイルを選択」で追加できます</span>';
+          return;
+        }
+        grid.innerHTML = '';
+        ids.forEach(function (fid) {
+          dbGetFile(fid).then(function (f) {
+            if (!f || !f.blob) return;
+            var url = URL.createObjectURL(f.blob);
+            attUrls[fid] = url;
+            var d = document.createElement('div');
+            d.className = 'att';
+            d.innerHTML = '<img src="' + url + '"><span class="rm" data-frm="' + esc(fid) + '">×</span>';
+            d.addEventListener('click', function (e) {
+              var rm = e.target.closest('[data-frm]');
+              if (rm) {
+                if (!confirm('この画像を削除しますか？')) return;
+                r.attachments = (r.attachments || []).filter(function (x) { return x !== fid; });
+                dbDelFile(fid).then(function () { return saveRecord(r); }).then(function () {
+                  renderHome();
+                  loadAtt();
+                  showToast('画像を削除しました');
+                });
+                return;
+              }
+              showLightbox(url);
+            });
+            grid.appendChild(d);
+          });
+        });
+      }
+      loadAtt();
+      $('#d-img', v).addEventListener('change', function (e) {
+        var files = [].slice.call(e.target.files);
+        e.target.value = '';
+        Promise.all(files.filter(function (f) { return /^image\//.test(f.type); }).map(function (f) {
+          return compressImage(f).then(function (blob) {
+            var fid = newFileId();
+            return dbPutFile({ id: fid, name: f.name, type: 'image/jpeg', blob: blob, createdAt: new Date().toISOString() })
+              .then(function () { return fid; });
+          });
+        })).then(function (ids) {
+          if (!ids.length) return;
+          r.attachments = (r.attachments || []).concat(ids);
+          return saveRecord(r).then(function () {
+            renderHome();
+            loadAtt();
+            showToast('画像を追加しました ▸ ' + ids.length + '枚');
+          });
+        }).catch(function (e2) { showToast('画像の追加に失敗: ' + e2.message); });
+      });
       var applyBtn = $('#d-apply', v);
       if (applyBtn) {
         applyBtn.addEventListener('click', function () {
@@ -1217,6 +1513,10 @@ function viewSettings() {
       '<div class="btnrow" style="margin-top:0;"><button class="btn primary" id="s-save-ai">保存</button><button class="btn danger" id="s-clear-ai">キーを削除</button></div>' +
       '<div class="hint" id="s-key-status"></div>' +
     '</div></div>' +
+    '<div class="sec"><div class="shead">TAGS — タグ管理（タップでリネーム / 統合 / 削除）</div><div class="sbody">' +
+      '<div class="terms" id="s-tags"></div>' +
+      '<div class="hint">タップして新しい名前を入力。既存タグと同じ名前にすると統合、空欄にすると削除されます。</div>' +
+    '</div></div>' +
     '<div class="sec"><div class="shead">BACKUP — JSONエクスポート / インポート</div><div class="sbody">' +
       '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;">データはこの端末のブラウザ（IndexedDB）に保存されています。定期的にエクスポートしてバックアップしてください。UE版はこのJSONを読み込みます。</div>' +
       '<div class="btnrow" style="margin-top:0;">' +
@@ -1225,7 +1525,7 @@ function viewSettings() {
         '<input type="file" id="s-file" accept=".json,application/json" style="display:none;">' +
       '</div>' +
     '</div></div>' +
-    '<div class="sec"><div class="shead">INFO</div><div class="sbody dim">Knowledge Codex — Phase 2<br>登録・一覧・詳細・検索・AI整理（コピペ方式）・追記ログ・使用履歴・アーカイブまで実装済み。<br>次: 画像添付・用語集（Phase 3）</div></div>' +
+    '<div class="sec"><div class="shead">INFO</div><div class="sbody dim">Knowledge Codex — Phase 3<br>登録・一覧（カード/表）・詳細・検索・AI整理（API直接/コピペ）・画像添付・用語集・タグ管理・バックアップまで実装済み。<br>次: 関連知識ネットワーク（Phase 4）</div></div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
@@ -1252,14 +1552,65 @@ function viewSettings() {
         keyStatus();
         showToast('APIキーを削除しました');
       });
+
+      function renderTags() {
+        var counts = {};
+        state.records.forEach(function (r) {
+          (r.tags || []).forEach(function (t) { counts[t] = (counts[t] || 0) + 1; });
+        });
+        var keys = Object.keys(counts).sort();
+        $('#s-tags', v).innerHTML = keys.length
+          ? keys.map(function (t) { return '<span class="tag" data-rtag="' + esc(t) + '" style="cursor:pointer;">' + esc(t) + ' ×' + counts[t] + '</span>'; }).join('')
+          : '<span style="font-size:11px;color:var(--muted);">タグはまだありません</span>';
+      }
+      renderTags();
+      $('#s-tags', v).addEventListener('click', function (e) {
+        var chip = e.target.closest('[data-rtag]');
+        if (!chip) return;
+        var oldTag = chip.dataset.rtag;
+        var nn = prompt('タグ「' + oldTag + '」の新しい名前（空欄で削除、既存タグ名で統合）', oldTag);
+        if (nn === null) return;
+        nn = nn.trim();
+        if (nn === oldTag) return;
+        var changed = state.records.filter(function (r) { return (r.tags || []).indexOf(oldTag) >= 0; });
+        if (!confirm((nn ? '「' + oldTag + '」→「' + nn + '」に変更' : '「' + oldTag + '」を削除') + 'します（' + changed.length + '件の知識に影響）。よろしいですか？')) return;
+        Promise.all(changed.map(function (r) {
+          r.tags = r.tags.filter(function (t) { return t !== oldTag; });
+          if (nn && r.tags.indexOf(nn) < 0) r.tags.push(nn);
+          return saveRecord(r);
+        })).then(function () {
+          renderTags();
+          renderHome();
+          showToast(nn ? 'TAG RENAMED ▸ ' + oldTag + ' → ' + nn : 'TAG REMOVED ▸ ' + oldTag);
+        });
+      });
       $('#s-export', v).addEventListener('click', function () {
-        var blob = new Blob([JSON.stringify({ app: 'knowledge-codex', exportedAt: new Date().toISOString(), records: state.records }, null, 2)], { type: 'application/json' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'knowledge-codex-' + today() + '.json';
-        a.click();
-        URL.revokeObjectURL(a.href);
-        showToast('EXPORTED ▸ ' + state.records.length + ' RECORDS');
+        var fileIds = [];
+        state.records.forEach(function (r) {
+          (r.attachments || []).forEach(function (id) { if (fileIds.indexOf(id) < 0) fileIds.push(id); });
+        });
+        Promise.all(fileIds.map(function (id) {
+          return dbGetFile(id).then(function (f) {
+            if (!f || !f.blob) return null;
+            return blobToDataURL(f.blob).then(function (dataUrl) {
+              return { id: f.id, name: f.name, type: f.type, data: dataUrl };
+            });
+          });
+        })).then(function (files) {
+          files = files.filter(Boolean);
+          var blob = new Blob([JSON.stringify({
+            app: 'knowledge-codex',
+            exportedAt: new Date().toISOString(),
+            records: state.records,
+            files: files
+          }, null, 2)], { type: 'application/json' });
+          var a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'knowledge-codex-' + today() + '.json';
+          a.click();
+          URL.revokeObjectURL(a.href);
+          showToast('EXPORTED ▸ ' + state.records.length + ' RECORDS / ' + files.length + ' IMAGES');
+        });
       });
       $('#s-import', v).addEventListener('click', function () { $('#s-file', v).click(); });
       $('#s-file', v).addEventListener('change', function (e) {
@@ -1272,12 +1623,18 @@ function viewSettings() {
             var recs = Array.isArray(data) ? data : data.records;
             if (!Array.isArray(recs)) throw new Error('records array not found');
             if (!confirm(recs.length + '件を取り込みます。同じIDの知識は上書きされます。よろしいですか？')) return;
+            var fileImports = (Array.isArray(data.files) ? data.files : []).map(function (f) {
+              if (!f || !f.id || !f.data) return Promise.resolve();
+              return fetch(f.data).then(function (r2) { return r2.blob(); }).then(function (blob) {
+                return dbPutFile({ id: f.id, name: f.name || '', type: f.type || 'image/jpeg', blob: blob, createdAt: new Date().toISOString() });
+              }).catch(function () {});
+            });
             Promise.all(recs.map(function (rec) {
               if (!rec.id || !rec.title) return Promise.resolve();
               var i = state.records.findIndex(function (x) { return x.id === rec.id; });
               if (i >= 0) state.records[i] = rec; else state.records.push(rec);
               return dbPut(rec);
-            })).then(function () {
+            }).concat(fileImports)).then(function () {
               renderHome();
               showToast('IMPORTED ▸ ' + recs.length + ' RECORDS');
             });
@@ -1291,6 +1648,64 @@ function viewSettings() {
   };
 }
 
+/* ---------- terms glossary view ---------- */
+function collectTerms() {
+  var map = {};
+  state.records.forEach(function (r) {
+    if (r.status === 'archived') return;
+    ((r.ai && r.ai.terms) || []).forEach(function (t) {
+      if (!t.term) return;
+      var k = t.term.toLowerCase();
+      if (!map[k]) map[k] = { term: t.term, descs: [], sources: [] };
+      if (t.desc && map[k].descs.indexOf(t.desc) < 0) map[k].descs.push(t.desc);
+      if (!map[k].sources.some(function (s) { return s.id === r.id; })) {
+        map[k].sources.push({ id: r.id, title: r.title });
+      }
+    });
+  });
+  return Object.keys(map).sort().map(function (k) { return map[k]; });
+}
+function viewTerms(q) {
+  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    vhead('GLOSSARY', '用語集 — AI整理で覚えた技術語が自動で溜まります') +
+    '<div class="vbody">' +
+    '<div class="field"><input type="search" id="t-q" placeholder="用語を検索…" enterkeyhint="search"></div>' +
+    '<div class="qresult" id="t-count"></div>' +
+    '<div id="t-list"></div>' +
+    '</div></div>';
+  return function () {
+    openView(html, function (v) {
+      var all = collectTerms();
+      var qEl = $('#t-q', v);
+      qEl.value = q.get('q') || '';
+      function apply() {
+        var query = qEl.value.trim().toLowerCase();
+        var list = all.filter(function (t) {
+          if (!query) return true;
+          return (t.term + ' ' + t.descs.join(' ')).toLowerCase().indexOf(query) >= 0;
+        });
+        $('#t-count', v).innerHTML = 'TERMS: <span>' + list.length + '</span> / ' + all.length;
+        $('#t-list', v).innerHTML = list.length ? list.map(function (t) {
+          return '<div class="gterm">' +
+            '<div class="gname">' + esc(t.term) + '</div>' +
+            (t.descs.length ? '<div class="gdesc">' + t.descs.map(esc).join('<br>') + '</div>' : '') +
+            '<div class="gsrc">' + t.sources.map(function (s) {
+              return '<span class="tag" data-id="' + esc(s.id) + '">' + esc(s.id) + ' ' + esc(s.title.slice(0, 16)) + '</span>';
+            }).join('') + '</div>' +
+          '</div>';
+        }).join('') :
+          '<div class="empty"><div class="big">NO TERMS</div>知識をAI整理すると、技術語がここに自動で集まります</div>';
+      }
+      qEl.addEventListener('input', apply);
+      $('#t-list', v).addEventListener('click', function (e) {
+        var src = e.target.closest('[data-id]');
+        if (src) location.hash = '#/detail/' + src.dataset.id;
+      });
+      apply();
+    });
+  };
+}
+
 /* ---------- router ---------- */
 function route() {
   var h = location.hash || '#/';
@@ -1300,6 +1715,7 @@ function route() {
   if (h.indexOf('#/list') === 0) { viewList(parseQuery(h))(); return; }
   if ((m = h.match(/^#\/detail\/([A-Za-z]+-\d+)/))) { viewDetail(m[1])(); return; }
   if ((m = h.match(/^#\/ai\/([A-Za-z]+-\d+)/))) { viewAI(m[1])(); return; }
+  if (h.indexOf('#/terms') === 0) { viewTerms(parseQuery(h))(); return; }
   if (h.indexOf('#/settings') === 0) { viewSettings()(); return; }
   closeView(); renderHome();
 }
@@ -1318,6 +1734,8 @@ document.getElementById('archive-body').addEventListener('click', function (e) {
   if (m) { e.stopPropagation(); location.hash = '#/list?cat=' + encodeURIComponent(m.dataset.cat); }
 });
 document.getElementById('system-body').addEventListener('click', function (e) {
+  var term = e.target.closest('[data-term]');
+  if (term) { e.stopPropagation(); location.hash = '#/terms?q=' + encodeURIComponent(term.dataset.term); return; }
   var tag = e.target.closest('[data-tag]');
   if (tag) { e.stopPropagation(); location.hash = '#/list?q=' + encodeURIComponent(tag.dataset.tag); return; }
   var row = e.target.closest('[data-go]');
