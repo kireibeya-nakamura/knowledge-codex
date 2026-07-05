@@ -794,6 +794,9 @@ function viewCapture() {
     '<div class="vbody">' +
     '<div class="field"><label>TITLE <em>*必須</em></label><input type="text" id="f-title" placeholder="例: 水面の動きがゴムっぽく見える原因" autocomplete="off"></div>' +
     '<div class="field"><label>ONE LINER — 一言メモ</label><input type="text" id="f-one" placeholder="例: 水っぽさは法線・反射・リップルで出す" autocomplete="off"></div>' +
+    '<div class="field"><label>IMAGES — 画像添付（PCなら Ctrl+V 貼り付けも可）</label>' +
+      '<input type="file" id="f-img" accept="image/*" multiple>' +
+      '<div id="f-pending" class="attgrid" style="margin-top:8px;"></div></div>' +
     '<details class="adv"><summary>詳細を追加（あとからでもOK）</summary>' +
       '<div class="field" style="margin-top:10px;"><label>BODY — 本文メモ</label><textarea id="f-body" placeholder="詰まった原因、解決策、気づきなど"></textarea></div>' +
       '<div class="grid2">' +
@@ -806,12 +809,9 @@ function viewCapture() {
         '<div class="field"><label>IMPORTANCE — 重要度</label><select id="f-imp"><option value="1">◆◇◇</option><option value="2">◆◆◇</option><option value="3">◆◆◆</option></select></div>' +
       '</div>' +
       '<div class="field"><label>LINK — 参考リンク</label><input type="url" id="f-link" placeholder="https://" autocomplete="off"></div>' +
-      '<div class="field"><label>IMAGES — 画像添付（スクショはこの画面で Ctrl+V でも貼れます）</label>' +
-        '<input type="file" id="f-img" accept="image/*" multiple>' +
-        '<div id="f-pending" class="attgrid" style="margin-top:8px;"></div></div>' +
     '</details>' +
     '<div class="btnrow"><button class="btn primary" id="f-save">保存 ▸ REGISTER</button><button class="btn" id="f-save-ai">保存してAI整理 ▸</button></div>' +
-    '<div class="hint">保存後も続けて登録できます。画像添付はPhase 3で実装予定。</div>' +
+    '<div class="hint">保存後も続けて登録できます。カテゴリ・タグは「詳細を追加」から。</div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
@@ -843,8 +843,6 @@ function viewCapture() {
           compressImage(f).then(function (blob) {
             pending.push({ blob: blob, name: f.name || 'pasted.jpg', url: URL.createObjectURL(blob) });
             renderPending();
-            var adv = $('details.adv', v);
-            if (adv) adv.open = true;
             showToast('画像を追加しました（保存時に登録されます）');
           }).catch(function (e2) { showToast('画像の追加に失敗: ' + e2.message); });
         });
