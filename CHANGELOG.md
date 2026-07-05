@@ -13,6 +13,7 @@ Claude/Codex引き継ぎ用。変更したら必ずここに記録する。
 - **ホーム演出強化**: パネルの段階フェードイン起動、CAPTUREボタンの発光パルス
 - レコード削除時に添付画像もDBから削除
 - 検証: DB v2移行・画像圧縮(19KB)→サムネ→拡大・用語集4語集約・テーブル切替と行遷移・タグリネーム（Shoreline→Waterline横断適用）をプレビューで確認済み
+- **デプロイ運用メモ**: deploy-pagesが「Deployment failed, try again later」で落ちた場合、**rerun-failed-jobsで再実行してはいけない**（同一runにアーティファクトが二重登録され「Multiple artifacts named github-pages」で確実に失敗する）。正解は新規実行＝`POST /actions/workflows/pages.yml/dispatches`（workflow_dispatch）
 
 ## v7 — 2026-07-04 【AI整理のアプリ内完結（Claude API直接連携）】
 
