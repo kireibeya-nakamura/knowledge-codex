@@ -207,3 +207,11 @@ This skill holds the *judgment*. Keep the three consistent.
   put it outside the tab. This is the "primary actions live in the open" prohibition applied to
   navigation — the way back should never be something you hunt for. Also shrank the card type-glyph
   (SOL/INS "logo") in landscape; at the reduced card size it was oversized relative to the card.
+- **2026-07-08 (supersedes the line above)** — The top-left floating "戻る" was wrong: in portrait it
+  overlapped the panel's header tab, in landscape it sat too far into the corner, and the button +
+  「戻る」label were too big. Reworked into a compact "◀ back" living in the persistent **top-right HUD
+  slot**, shown only while a subview is open — it replaces the stats/gear readout there (which are
+  home-only context anyway), so there's no collision. Lessons: (1) a global back belongs in the
+  persistent chrome, not injected per-view — one fixed, always-in-the-same-place spot beats a
+  per-screen element; (2) top-right is the expected home for a close/back on this app; (3) keep the
+  control small (an icon-ish "◀ back", not a worded button) — discoverable ≠ big.

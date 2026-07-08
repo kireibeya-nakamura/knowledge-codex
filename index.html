@@ -225,16 +225,18 @@
     border-bottom: 1px solid rgba(58,110,255,0.35);
     background: linear-gradient(90deg, rgba(58,110,255,0.14), transparent 70%);
   }
-  .vback {
-    position: fixed; top: 50px; left: 12px; z-index: 28;
-    font-family: var(--mono); font-size: 13px; letter-spacing: 1px;
-    color: var(--cyan); background: rgba(6,13,34,0.94);
+  .hud-back {
+    display: none; pointer-events: auto;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
+    color: var(--cyan); background: rgba(6,13,34,0.9);
     border: 1px solid var(--line-bright); border-radius: 3px;
-    padding: 9px 16px; cursor: pointer;
-    box-shadow: 0 0 12px rgba(58,110,255,0.32);
+    padding: 5px 11px; cursor: pointer;
+    box-shadow: 0 0 8px rgba(58,110,255,0.3);
   }
-  .vback:hover { background: rgba(58,110,255,0.18); color: #dbe7ff; }
-  .vback:active { transform: scale(0.97); }
+  .hud-back:hover { background: rgba(58,110,255,0.18); color: #dbe7ff; }
+  .hud-back:active { transform: scale(0.96); }
+  body.view-open .hud .stats, body.view-open .hud .gear { display: none; }
+  body.view-open .hud-back { display: inline-block; }
   .vhead .back {
     cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line);
     border-radius: 4px; padding: 3px 10px; font-size: 11px; white-space: nowrap;
@@ -556,6 +558,7 @@
   <div class="right">
     <div class="stats">RECORDS: <span id="st-rec">0</span> // TAGS: <span id="st-tag">0</span><br>SYNC <span id="clock">--:--:--</span></div>
     <div class="gear" id="go-settings" title="設定">⚙</div>
+    <button class="hud-back" id="hud-back" aria-label="戻る">◀ back</button>
   </div>
 </header>
 
@@ -1028,14 +1031,13 @@ function renderHome() {
 /* ---------- view helpers ---------- */
 var viewEl = document.getElementById('view');
 function openView(html, wire) {
-  viewEl.innerHTML = '<button class="back vback" aria-label="戻る">◀ 戻る</button>' + html;
+  viewEl.innerHTML = html;
   viewEl.classList.add('open');
+  document.body.classList.add('view-open');
   viewEl.scrollTop = 0;
   if (wire) wire(viewEl);
-  var back = $('.back', viewEl);
-  if (back) back.addEventListener('click', function () { history.length > 1 ? history.back() : (location.hash = '#/'); });
 }
-function closeView() { viewEl.classList.remove('open'); viewEl.innerHTML = ''; }
+function closeView() { viewEl.classList.remove('open'); viewEl.innerHTML = ''; document.body.classList.remove('view-open'); }
 function vhead(code, jp) {
   return '<div class="vhead"><span>' + code + '</span><span class="jp">' + esc(jp) + '</span></div>';
 }
@@ -2158,6 +2160,7 @@ addEventListener('hashchange', route);
 /* ---------- home wiring ---------- */
 document.getElementById('go-home').addEventListener('click', function () { location.hash = '#/'; });
 document.getElementById('go-settings').addEventListener('click', function () { location.hash = '#/settings'; });
+document.getElementById('hud-back').addEventListener('click', function () { history.length > 1 ? history.back() : (location.hash = '#/'); });
 document.getElementById('btn-capture').addEventListener('click', function () { location.hash = '#/capture'; });
 document.getElementById('panel-records').addEventListener('click', function (e) {
   if (!e.target.closest('.kcard')) location.hash = '#/list';

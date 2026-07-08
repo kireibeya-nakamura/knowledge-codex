@@ -3,6 +3,15 @@
 Claude/Codex引き継ぎ用。変更したら必ずここに記録する。
 携帯確認URL: https://kireibeya-nakamura.github.io/knowledge-codex/?v=N （Nは毎回上げる）
 
+## v13 — 2026-07-08 【backボタンを右上HUDへ・小型化（v12の作り直し）】
+
+- ユーザー指摘: v12の左上フローティング「戻る」は①縦持ちでパネルのタブに被る②横持ちで端すぎ③文字・ボタンが大きい。→ 作り直し
+- **backを右上HUDの常設ボタンに**: `<button id="hud-back">◀ back</button>` をHUD右クラスタに追加。**画面（オーバーレイ）を開いている間だけ表示**し、その間はステータス表示(stats)と⚙(gear)を隠す（`body.view-open`で切替）。これで**全画面・全向きで必ず右上・同じ位置**、パネルのタブとも重ならない
+- 小型化: 「戻る」→「◀ back」、padding 9px16px→5px11px、font 13→12px
+- v12のフローティング`.vback`（openViewでの注入）は撤去。`openView/closeView`で`body.view-open`をトグル、`#hud-back`のクリックは一度だけ配線（history.back or #/）
+- 設計ログ更新（前回の左上案を「なぜ間違いだったか」つきでsupersede）
+- 検証: ホーム=back非表示/stats・gear表示、画面を開くと=back表示(top12,right18)/stats・gear非表示、クリックで戻る、カード画面でも表示、旧.vback消滅、コンソールエラーなし
+
 ## v12 — 2026-07-08 【backボタンをパネル外に・横持ちカードのロゴ縮小】
 
 - **backボタンを分かりやすく**（ユーザー指摘「わかりにくい」）: パネルヘッダ内の小さな「◄ BACK」を廃止し、**画面左上に浮かせた固定ボタン「◀ 戻る」**（枠線＋発光、HUD直下 top:50/left:12、パネルの外）に。`openView`で全オーバーレイ画面に自動注入、`vhead()`とカード画面の`cshud`から重複backを削除。navもverify済み（一覧→戻る→ホーム、カード画面にも表示）
