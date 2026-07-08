@@ -225,6 +225,16 @@
     border-bottom: 1px solid rgba(58,110,255,0.35);
     background: linear-gradient(90deg, rgba(58,110,255,0.14), transparent 70%);
   }
+  .vback {
+    position: fixed; top: 50px; left: 12px; z-index: 28;
+    font-family: var(--mono); font-size: 13px; letter-spacing: 1px;
+    color: var(--cyan); background: rgba(6,13,34,0.94);
+    border: 1px solid var(--line-bright); border-radius: 3px;
+    padding: 9px 16px; cursor: pointer;
+    box-shadow: 0 0 12px rgba(58,110,255,0.32);
+  }
+  .vback:hover { background: rgba(58,110,255,0.18); color: #dbe7ff; }
+  .vback:active { transform: scale(0.97); }
   .vhead .back {
     cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line);
     border-radius: 4px; padding: 3px 10px; font-size: 11px; white-space: nowrap;
@@ -506,6 +516,10 @@
     .bpage .ccard .ctitle { font-size: 10px; }
     .bpage .ccard .chead { font-size: 8px; padding: 5px 6px 4px; }
     .bpage .ccard .cfoot { font-size: 7px; padding: 4px 6px; }
+    .bpage .ccard .cimg .glyph, .cobj .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
+    .cobj .cback .cbem { font-size: 26px; }
+    .cobj .cback .cbt { font-size: 11px; letter-spacing: 2px; }
+    .cobj .cback .cbs { font-size: 7px; }
     .kcard { padding: 7px 9px; }
     .kcard .thumb { flex-basis: 44px; height: 44px; }
     #view { padding: 52px 40px 20px; }
@@ -1014,7 +1028,7 @@ function renderHome() {
 /* ---------- view helpers ---------- */
 var viewEl = document.getElementById('view');
 function openView(html, wire) {
-  viewEl.innerHTML = html;
+  viewEl.innerHTML = '<button class="back vback" aria-label="戻る">◀ 戻る</button>' + html;
   viewEl.classList.add('open');
   viewEl.scrollTop = 0;
   if (wire) wire(viewEl);
@@ -1023,7 +1037,7 @@ function openView(html, wire) {
 }
 function closeView() { viewEl.classList.remove('open'); viewEl.innerHTML = ''; }
 function vhead(code, jp) {
-  return '<div class="vhead"><span class="back">◄ BACK</span><span>' + code + '</span><span class="jp">' + esc(jp) + '</span></div>';
+  return '<div class="vhead"><span>' + code + '</span><span class="jp">' + esc(jp) + '</span></div>';
 }
 
 /* ---------- capture view ---------- */
@@ -2069,7 +2083,7 @@ function viewCard(id) {
     if (!r) { showToast('CARD NOT FOUND: ' + id); location.hash = '#/cards'; return; }
     var html =
       '<div class="cardspace">' +
-        '<div class="cshud"><span class="back">◀ BACK</span><span class="cid">CARD ' + esc(r.id) + '</span></div>' +
+        '<div class="cshud"><span class="cid">CARD ' + esc(r.id) + '</span></div>' +
         '<div class="cstage" id="cstage"><div class="cobj" id="cobj">' +
           '<div class="cface">' + cardFaceHTML(r) + '</div>' +
           '<div class="cface backface"><div class="cback">' +

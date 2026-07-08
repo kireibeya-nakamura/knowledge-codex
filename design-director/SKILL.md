@@ -202,4 +202,8 @@ This skill holds the *judgment*. Keep the three consistent.
 - **2026-07-08** — Reduced corner radii across the app (panels/cards ~4px, controls ~3px). Why:
   soft rounding read as consumer cards; the intended look is angular precision framing. Reworked the
   sound engine to layered/filtered voices with a short delay tail. Why: the first synth sounded cheap.
-```
+- **2026-07-08** — Back navigation moved out of the panel header into a fixed floating "◀ 戻る" button
+  at top-left, outside the panel. Why: the in-header "◀ BACK" was hard to notice; the author asked to
+  put it outside the tab. This is the "primary actions live in the open" prohibition applied to
+  navigation — the way back should never be something you hunt for. Also shrank the card type-glyph
+  (SOL/INS "logo") in landscape; at the reduced card size it was oversized relative to the card.
