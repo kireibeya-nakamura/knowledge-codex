@@ -514,10 +514,13 @@
     .cobj { width: calc((100vh - 175px) * 0.716); width: calc((100dvh - 175px) * 0.716); }
     .bpage { flex-direction: row; justify-content: center; padding: 10px 6px; gap: 8px; }
     .bslot { width: calc((100vh - 255px) * 0.716); width: calc((100dvh - 255px) * 0.716); min-width: 72px; }
-    .bpage .ccard .cone, .bpage .ccard .cstats { display: none; }
-    .bpage .ccard .ctitle { font-size: 10px; }
-    .bpage .ccard .chead { font-size: 8px; padding: 5px 6px 4px; }
-    .bpage .ccard .cfoot { font-size: 7px; padding: 4px 6px; }
+    .bpage .ccard .cone, .bpage .ccard .cstats, .bpage .ccard .cfoot, .bpage .ccard .chead .chip { display: none; }
+    .bpage .ccard { border-color: rgba(58,110,255,0.45); box-shadow: 0 0 8px rgba(58,110,255,0.14), inset 0 0 14px rgba(58,110,255,0.03); }
+    .bpage .ccard .cc { width: 7px; height: 7px; border-width: 1px; }
+    .bpage .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; border-bottom-color: rgba(58,110,255,0.18); }
+    .bpage .ccard .cimg { margin: 5px 7px 0; border-color: rgba(58,110,255,0.28); }
+    .bpage .ccard .cbody { padding: 6px 7px 5px; }
+    .bpage .ccard .ctitle { font-size: 10px; font-weight: 400; letter-spacing: 0.2px; }
     .bpage .ccard .cimg .glyph, .cobj .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
     .cobj .cback .cbem { font-size: 26px; }
     .cobj .cback .cbt { font-size: 11px; letter-spacing: 2px; }
@@ -643,11 +646,11 @@ function audioReady() {
     var lp = audioCtx.createBiquadFilter();
     lp.type = 'lowpass'; lp.frequency.value = 7000; lp.Q.value = 0.5;
     sndMaster.connect(lp); lp.connect(audioCtx.destination);
-    // short feedback delay for a bit of "space" (send-based, subtle)
+    // short feedback delay for a bit of "space" (send-based, thin and brief)
     sndDelay = audioCtx.createDelay(0.5);
-    sndDelay.delayTime.value = 0.085;
-    var fb = audioCtx.createGain(); fb.gain.value = 0.24;
-    var wet = audioCtx.createGain(); wet.gain.value = 0.5;
+    sndDelay.delayTime.value = 0.068;
+    var fb = audioCtx.createGain(); fb.gain.value = 0.16;
+    var wet = audioCtx.createGain(); wet.gain.value = 0.26;
     sndDelay.connect(fb); fb.connect(sndDelay); sndDelay.connect(wet); wet.connect(lp);
     // one reusable noise buffer for tactile transients
     noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
@@ -657,76 +660,78 @@ function audioReady() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return true;
 }
-// one filtered, enveloped voice (two detuned oscillators through a swept filter)
-function voice(o) {
-  var t = audioCtx.currentTime + (o.when || 0);
-  var dur = o.dur || 0.1;
-  var flt = audioCtx.createBiquadFilter();
-  flt.type = o.filter || 'bandpass';
-  flt.Q.value = o.q == null ? 5 : o.q;
-  flt.frequency.setValueAtTime(o.fc0 || 1400, t);
-  if (o.fc1) flt.frequency.exponentialRampToValueAtTime(o.fc1, t + dur);
-  var vca = audioCtx.createGain();
-  vca.gain.setValueAtTime(0.0001, t);
-  vca.gain.exponentialRampToValueAtTime(o.vol || 0.16, t + (o.atk || 0.005));
-  vca.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  flt.connect(vca); vca.connect(sndMaster);
-  if (o.send) vca.connect(sndDelay);
-  var det = o.detune || 0;
-  [0, det].forEach(function (d, i) {
-    if (i === 1 && !det) return;
-    var osc = audioCtx.createOscillator();
-    osc.type = o.type || 'square';
-    osc.frequency.setValueAtTime(o.f0, t);
-    if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, t + dur);
-    osc.detune.value = d;
-    var og = audioCtx.createGain(); og.gain.value = i === 0 ? 1 : 0.55;
-    osc.connect(og); og.connect(flt);
-    osc.start(t); osc.stop(t + dur + 0.05);
-  });
-}
-// short filtered noise burst — the "tactile" click layer
-function noise(o) {
+// ---- premium terminal sound design ----
+// Doctrine: no oscillator pitch sweeps (reads as "pico-pico"). The identity is
+// hard filtered-noise transients (tck), glassy filter-swept noise (shk/tzin),
+// and quiet fixed-pitch low-mid tones for weight (vmm). Short, quiet, dry-ish.
+
+// filtered noise: the click / scan / glass layer. Sweep the FILTER, never a pitch.
+function nz(o) {
   var t = audioCtx.currentTime + (o.when || 0);
   var dur = o.dur || 0.03;
   var src = audioCtx.createBufferSource();
   src.buffer = noiseBuf; src.loop = true;
-  var bp = audioCtx.createBiquadFilter();
-  bp.type = 'bandpass'; bp.frequency.value = o.fc || 2800; bp.Q.value = o.q || 0.9;
+  var f = audioCtx.createBiquadFilter();
+  f.type = o.type || 'bandpass';
+  f.Q.value = o.q == null ? 1.2 : o.q;
+  f.frequency.setValueAtTime(o.fc0 || 3000, t);
+  if (o.fc1) f.frequency.exponentialRampToValueAtTime(o.fc1, t + dur);
   var g = audioCtx.createGain();
-  g.gain.setValueAtTime(o.vol || 0.1, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(o.vol || 0.03, t + (o.atk || 0.003));
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  src.connect(bp); bp.connect(g); g.connect(sndMaster);
+  src.connect(f); f.connect(g); g.connect(sndMaster);
+  if (o.send) g.connect(sndDelay);
   src.start(t); src.stop(t + dur + 0.02);
+}
+// fixed-pitch low/mid tone: body and warmth. Pitch stays put (or drifts a few Hz).
+function tn(o) {
+  var t = audioCtx.currentTime + (o.when || 0);
+  var dur = o.dur || 0.12;
+  var osc = audioCtx.createOscillator();
+  osc.type = o.type || 'sine';
+  osc.frequency.setValueAtTime(o.f, t);
+  if (o.f1) osc.frequency.linearRampToValueAtTime(o.f1, t + dur);
+  var g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(o.vol || 0.035, t + (o.atk || 0.01));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(g); g.connect(sndMaster);
+  if (o.send) g.connect(sndDelay);
+  osc.start(t); osc.stop(t + dur + 0.03);
 }
 function beep(kind) {
   if (!soundOn()) return;
   try {
     if (!audioReady()) return;
     switch (kind) {
-      case 'tap': // crisp UI tick: filtered blip + noise transient
-        voice({ f0: 1150, f1: 1750, dur: 0.05, type: 'square', filter: 'bandpass', q: 7, fc0: 1900, fc1: 3400, vol: 0.11 });
-        noise({ dur: 0.02, fc: 3200, vol: 0.06 });
+      case 'tap': // micro tick: hard tiny click + faint low weight ("tck")
+        nz({ type: 'highpass', fc0: 3800, q: 0.7, dur: 0.014, vol: 0.05 });
+        tn({ f: 170, dur: 0.035, vol: 0.026, atk: 0.002 });
         break;
-      case 'open': // rising two-note swell into space (lowpass opening)
-        voice({ f0: 460, f1: 470, dur: 0.11, type: 'sawtooth', filter: 'lowpass', q: 3, fc0: 700, fc1: 2600, vol: 0.1, detune: 8, send: true });
-        voice({ f0: 690, f1: 940, dur: 0.12, type: 'triangle', filter: 'lowpass', q: 2, fc0: 1200, fc1: 3200, vol: 0.07, when: 0.05, send: true });
+      case 'open': // click, then a short hologram ignition ("tck → vmm")
+        nz({ type: 'highpass', fc0: 3800, q: 0.7, dur: 0.012, vol: 0.045 });
+        nz({ fc0: 600, fc1: 2400, q: 2.2, dur: 0.17, vol: 0.02, when: 0.02, send: true });
+        tn({ f: 196, f1: 202, dur: 0.16, vol: 0.03, type: 'triangle', atk: 0.02, when: 0.02, send: true });
         break;
-      case 'ok': // pleasant 3-note arpeggio, soft, with tail
-        voice({ f0: 587, dur: 0.09, type: 'triangle', filter: 'lowpass', fc0: 2400, q: 1, vol: 0.1, detune: 6 });
-        voice({ f0: 880, dur: 0.1, type: 'triangle', filter: 'lowpass', fc0: 2800, q: 1, vol: 0.1, detune: 6, when: 0.08 });
-        voice({ f0: 1175, dur: 0.16, type: 'triangle', filter: 'lowpass', fc0: 3400, q: 1, vol: 0.09, detune: 6, when: 0.16, send: true });
+      case 'ok': // quiet processed-complete: click + steady fifth dyad + glass dust ("tzin")
+        nz({ type: 'highpass', fc0: 4200, q: 0.7, dur: 0.01, vol: 0.03 });
+        tn({ f: 523.25, dur: 0.2, vol: 0.03, atk: 0.012, send: true });
+        tn({ f: 784, dur: 0.17, vol: 0.018, atk: 0.012, send: true });
+        nz({ fc0: 5200, q: 3, dur: 0.07, vol: 0.011, when: 0.02 });
         break;
-      case 'err': // low detuned buzz, downward
-        voice({ f0: 240, f1: 150, dur: 0.2, type: 'sawtooth', filter: 'lowpass', q: 4, fc0: 900, fc1: 300, vol: 0.09, detune: 14 });
-        noise({ dur: 0.05, fc: 500, q: 1.4, vol: 0.05 });
+      case 'err': // muted low alert: two close low sines beating + soft thud ("brt")
+        tn({ f: 138, dur: 0.13, vol: 0.05, atk: 0.004 });
+        tn({ f: 104, dur: 0.15, vol: 0.036, atk: 0.004 });
+        nz({ type: 'lowpass', fc0: 420, q: 1, dur: 0.05, vol: 0.028 });
         break;
-      case 'flip': // paper-ish flick: noise sweep + low thunk
-        noise({ dur: 0.05, fc: 2400, q: 0.7, vol: 0.09 });
-        voice({ f0: 300, f1: 190, dur: 0.06, type: 'square', filter: 'lowpass', fc0: 1400, q: 2, vol: 0.06 });
+      case 'flip': // page scan: downward glassy sweep, tick at the end ("shk")
+        nz({ fc0: 1600, fc1: 520, q: 1.6, dur: 0.12, vol: 0.03 });
+        nz({ type: 'highpass', fc0: 3600, q: 0.7, dur: 0.012, vol: 0.026, when: 0.1 });
         break;
-      case 'spin': // filter-swept "shiiing"
-        voice({ f0: 620, f1: 1700, dur: 0.16, type: 'sawtooth', filter: 'bandpass', q: 8, fc0: 900, fc1: 4200, vol: 0.09, detune: 10, send: true });
+      case 'spin': // card whirl: rising glass scan + faint tone, brief tail ("tzin")
+        nz({ fc0: 900, fc1: 4200, q: 2.4, dur: 0.2, vol: 0.02, send: true });
+        tn({ f: 660, dur: 0.14, vol: 0.014, atk: 0.03, send: true });
         break;
     }
   } catch (e) {}

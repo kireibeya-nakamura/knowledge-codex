@@ -207,6 +207,17 @@ This skill holds the *judgment*. Keep the three consistent.
   put it outside the tab. This is the "primary actions live in the open" prohibition applied to
   navigation — the way back should never be something you hunt for. Also shrank the card type-glyph
   (SOL/INS "logo") in landscape; at the reduced card size it was oversized relative to the card.
+- **2026-07-10** — Sound doctrine settled after two failed synth attempts ("安っぽい" twice). The rule
+  that fixed it: **never sweep an oscillator's pitch** — pitch glides read as pico-pico/toy. The
+  premium-terminal identity is (a) hard filtered-noise micro-clicks ("tck", highpass ~4kHz, <15ms),
+  (b) glassy noise scans where the FILTER sweeps, not the pitch ("shk/tzin"), (c) quiet fixed-pitch
+  low-mid sines for weight ("vmm", 100–200Hz), (d) thin short delay tail, (e) everything quiet and
+  short. Target: "黒い高級端末に青白いホログラムが点灯する音". Avoid: chiptune, arpeggio-cute, big
+  pitch jumps, long tails.
+- **2026-07-10** — Small cards (landscape book) get a *reduced* variant, not a shrunken one: hide
+  status chip / stats / footer, keep ID + image + title only; fade borders (0.45 alpha), 1px/7px
+  brackets, lighter title weight. Why: compressing the full card layout read as cluttered; at small
+  sizes information must be *removed*, not miniaturized.
 - **2026-07-08 (supersedes the line above)** — The top-left floating "戻る" was wrong: in portrait it
   overlapped the panel's header tab, in landscape it sat too far into the corner, and the button +
   「戻る」label were too big. Reworked into a compact "◀ back" living in the persistent **top-right HUD
