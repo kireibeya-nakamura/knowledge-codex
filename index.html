@@ -364,6 +364,39 @@
   .gterm .gsrc .tag { cursor: pointer; }
   .gterm .gsrc .tag:hover { color: var(--cyan); border-color: var(--cyan); }
 
+  .netpanel { max-width: 1100px; }
+  .netsvg { display: block; width: 100%; }
+  .nlink { stroke: rgba(122,160,255,0.5); stroke-width: 1; }
+  .nlink.tag { stroke: rgba(122,160,255,0.22); stroke-dasharray: 3 4; }
+  .nlink.lit { stroke: rgba(122,160,255,0.95); filter: drop-shadow(0 0 3px rgba(58,110,255,0.8)); }
+  .nlink.dim { stroke-opacity: 0.14; }
+  .nnode { cursor: pointer; }
+  .nnode .core { stroke-width: 1.2; animation: ntwinkle var(--tw, 6s) ease-in-out infinite; animation-delay: var(--twd, 0s); }
+  @keyframes ntwinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+  .nnode.st-captured .core { stroke: var(--amber); fill: rgba(255,217,138,0.16); }
+  .nnode.st-enriched .core { stroke: var(--cyan); fill: rgba(58,110,255,0.22); }
+  .nnode.st-applied .core { stroke: var(--green); fill: rgba(159,230,184,0.18); }
+  .nnode text { font-family: var(--mono); font-size: 9px; fill: var(--muted); text-anchor: middle; pointer-events: none; letter-spacing: 0.5px; }
+  .nnode.lone { opacity: 0.55; }
+  .nnode.dim { opacity: 0.2; }
+  .nnode.lit text { fill: var(--cyan-dim); }
+  .nnode.sel .core { filter: drop-shadow(0 0 6px rgba(122,160,255,0.9)); animation: none; opacity: 1; }
+  .nnode.sel text { fill: var(--cyan); }
+  .netsvg.many .nnode text { display: none; }
+  .netsvg.many .nnode.sel text, .netsvg.many .nnode.lit text { display: block; }
+  .netbar { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--muted); padding: 0 2px 8px; }
+  .netbar i { display: inline-block; width: 7px; height: 7px; transform: rotate(45deg); margin: 0 5px 0 12px; border: 1px solid; }
+  .netbar i:first-child { margin-left: 0; }
+  .netbar i.captured { border-color: var(--amber); background: rgba(255,217,138,0.2); }
+  .netbar i.enriched { border-color: var(--cyan); background: rgba(58,110,255,0.25); }
+  .netbar i.applied { border-color: var(--green); background: rgba(159,230,184,0.2); }
+  .netsel { margin-top: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px dashed rgba(58,110,255,0.3); border-radius: 3px; padding: 7px 10px; }
+  .netsel.has { color: var(--text); border: 1px solid var(--line-bright); cursor: pointer; background: rgba(58,110,255,0.08); }
+  .netsel.has:active { transform: scale(0.99); }
+  .netsel .nid { color: var(--cyan); margin-right: 6px; }
+  .netsel .ngo { color: var(--cyan); float: right; }
+  @media (max-height: 480px) { .netbar { display: none; } .netsel { padding: 4px 8px; } }
+
   .ccard {
     position: relative; width: 100%; aspect-ratio: 63/88;
     display: flex; flex-direction: column;
@@ -1022,6 +1055,7 @@ function renderHome() {
     '<div class="sysrow" data-go="#/list"><span>今月の登録</span><span class="v">' + monthly + '</span></div>' +
     '<div class="sysrow" data-go="#/list?status=applied"><span>使用済（実戦投入）</span><span class="v">' + applied + '</span></div>' +
     '<div class="sysrow" data-go="#/cards"><span>◆ COLLECTION — 知識カード</span><span class="v">' + active.length + '</span></div>' +
+    '<div class="sysrow" data-go="#/network"><span>✦ NETWORK — 関連の星図</span><span class="v">' + buildGraph().links.length + '</span></div>' +
     '<div class="sysrow" data-go="#/terms" style="display:block;"><span style="font-size:11px;color:var(--muted);">' + termLabel + '</span>' +
     '<div class="terms">' + termChips + '</div></div>';
 }
@@ -1973,6 +2007,162 @@ function viewTerms(q) {
   };
 }
 
+/* ---------- network star map ---------- */
+function buildGraph() {
+  var nodes = state.records.filter(function (r) { return r.status !== 'archived'; });
+  var has = {};
+  nodes.forEach(function (r) { has[r.id] = true; });
+  var seen = {}, links = [];
+  function add(a, b, kind) {
+    if (a === b || !has[a] || !has[b]) return;
+    var k = a < b ? a + '|' + b : b + '|' + a;
+    if (seen[k]) { if (kind === 'ai') seen[k].kind = 'ai'; return; }
+    var l = { a: a, b: b, kind: kind };
+    seen[k] = l;
+    links.push(l);
+  }
+  nodes.forEach(function (r) {
+    ((r.ai && r.ai.relatedIds) || []).forEach(function (t) { add(r.id, t, 'ai'); });
+  });
+  var byTag = {};
+  nodes.forEach(function (r) {
+    (r.tags || []).forEach(function (t) { (byTag[t] = byTag[t] || []).push(r.id); });
+  });
+  Object.keys(byTag).forEach(function (t) {
+    var ids = byTag[t];
+    if (ids.length < 2 || ids.length > 8) return; /* 8件超のタグは汎用すぎるので線にしない */
+    for (var i = 0; i < ids.length; i++)
+      for (var j = i + 1; j < ids.length; j++) add(ids[i], ids[j], 'tag');
+  });
+  return { nodes: nodes, links: links };
+}
+function layoutGraph(g, W, H) {
+  var n = g.nodes.length, pos = [], idx = {}, pad = 34;
+  g.nodes.forEach(function (r, i) {
+    idx[r.id] = i;
+    var h = 2166136261;
+    for (var c = 0; c < r.id.length; c++) h = ((h ^ r.id.charCodeAt(c)) * 16777619) >>> 0;
+    var ang = (h % 3600) / 3600 * Math.PI * 2;
+    var rad = 0.2 + ((h >>> 12) % 1000) / 1000 * 0.72;
+    pos.push({ x: W / 2 + Math.cos(ang) * rad * (W / 2 - pad), y: H / 2 + Math.sin(ang) * rad * (H / 2 - pad) });
+  });
+  var K = Math.sqrt(W * H / Math.max(1, n)) * 0.72;
+  var ITER = 240;
+  for (var it = 0; it < ITER; it++) {
+    var cap = Math.max(0.6, K * 0.5 * (1 - it / ITER));
+    var disp = pos.map(function () { return { x: 0, y: 0 }; });
+    var i, j, dx, dy, d, f;
+    for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
+      dx = pos[i].x - pos[j].x; dy = pos[i].y - pos[j].y;
+      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      f = K * K / (d * d);
+      disp[i].x += dx / d * f * K; disp[i].y += dy / d * f * K;
+      disp[j].x -= dx / d * f * K; disp[j].y -= dy / d * f * K;
+    }
+    g.links.forEach(function (l) {
+      var a = idx[l.a], b = idx[l.b];
+      var w = l.kind === 'ai' ? 1 : 0.45;
+      dx = pos[a].x - pos[b].x; dy = pos[a].y - pos[b].y;
+      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      f = d * d / K * w;
+      disp[a].x -= dx / d * f; disp[a].y -= dy / d * f;
+      disp[b].x += dx / d * f; disp[b].y += dy / d * f;
+    });
+    for (i = 0; i < n; i++) {
+      dx = disp[i].x + (W / 2 - pos[i].x) * 0.02;
+      dy = disp[i].y + (H / 2 - pos[i].y) * 0.02;
+      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
+      var m = Math.min(d, cap);
+      pos[i].x = Math.max(pad, Math.min(W - pad, pos[i].x + dx / d * m));
+      pos[i].y = Math.max(pad, Math.min(H - pad, pos[i].y + dy / d * m));
+    }
+  }
+  return pos;
+}
+function viewNetwork() {
+  var html = '<div class="vpanel netpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    vhead('NETWORK', '関連知識の星図 — つながりが見えます') +
+    '<div class="vbody">' +
+    '<div class="netbar"><span><i class="captured"></i>未整理<i class="enriched"></i>AI整理済<i class="applied"></i>使用済</span><span>── AI関連　┄┄ タグ共有</span></div>' +
+    '<div id="net-wrap"></div>' +
+    '<div class="netsel" id="net-sel"></div>' +
+    '</div></div>';
+  return function () {
+    openView(html, function (v) {
+      var g = buildGraph();
+      var wrap = $('#net-wrap', v), selEl = $('#net-sel', v);
+      var hintText = g.links.length ? '星をタップ ▸ もう一度タップで開く'
+        : '関連リンクはまだありません — AI整理やタグ共有で線がつながります';
+      selEl.textContent = hintText;
+      if (!g.nodes.length) {
+        wrap.innerHTML = '<div class="empty"><div class="big">NO STARS</div>知識を登録すると星図に現れます</div>';
+        return;
+      }
+      var W = wrap.clientWidth || 600;
+      var H = Math.max(160, innerHeight - wrap.getBoundingClientRect().top - selEl.offsetHeight - 52);
+      var pos = layoutGraph(g, W, H);
+      var idx = {}, deg = {}, neighbors = {};
+      g.nodes.forEach(function (r, i) { idx[r.id] = i; });
+      g.links.forEach(function (l) {
+        deg[l.a] = (deg[l.a] || 0) + 1; deg[l.b] = (deg[l.b] || 0) + 1;
+        (neighbors[l.a] = neighbors[l.a] || {})[l.b] = 1;
+        (neighbors[l.b] = neighbors[l.b] || {})[l.a] = 1;
+      });
+      var lines = g.links.map(function (l) {
+        var a = pos[idx[l.a]], b = pos[idx[l.b]];
+        return '<line class="nlink ' + l.kind + '" data-la="' + esc(l.a) + '" data-lb="' + esc(l.b) + '"' +
+          ' x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1) + '" x2="' + b.x.toFixed(1) + '" y2="' + b.y.toFixed(1) + '"/>';
+      }).join('');
+      var nodesSvg = g.nodes.map(function (r, i) {
+        var p = pos[i], d = deg[r.id] || 0;
+        var s = 4.5 + Math.min(3.5, d * 0.8) + (r.importance || 1) * 0.6;
+        var hs = (s * 0.72).toFixed(2);
+        return '<g class="nnode st-' + esc(r.status) + (d ? '' : ' lone') + '" data-id="' + esc(r.id) + '"' +
+          ' transform="translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')"' +
+          ' style="--tw:' + (5 + (i % 5)) + 's;--twd:-' + ((i * 1.7) % 8).toFixed(1) + 's">' +
+          '<circle r="' + (s + 10).toFixed(0) + '" fill="transparent"/>' +
+          '<rect class="core" x="-' + hs + '" y="-' + hs + '" width="' + (hs * 2) + '" height="' + (hs * 2) + '" transform="rotate(45)"/>' +
+          '<text y="' + (s + 13).toFixed(0) + '">' + esc(r.id) + '</text>' +
+          '</g>';
+      }).join('');
+      wrap.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" xmlns="http://www.w3.org/2000/svg">' + lines + nodesSvg + '</svg>';
+      var sel = null;
+      function select(id) {
+        sel = id;
+        [].forEach.call(v.querySelectorAll('.nnode'), function (el) {
+          var isSel = el.dataset.id === id;
+          var linked = !!(id && neighbors[id] && neighbors[id][el.dataset.id]);
+          el.classList.toggle('sel', isSel);
+          el.classList.toggle('lit', linked);
+          el.classList.toggle('dim', !!id && !isSel && !linked);
+        });
+        [].forEach.call(v.querySelectorAll('.nlink'), function (el) {
+          var on = !!(id && (el.dataset.la === id || el.dataset.lb === id));
+          el.classList.toggle('lit', on);
+          el.classList.toggle('dim', !!id && !on);
+        });
+        if (id) {
+          var r = g.nodes[idx[id]];
+          selEl.innerHTML = '<span class="nid">' + esc(id) + '</span>' + esc(r.title) + '<span class="ngo">開く ▸</span>';
+          selEl.classList.add('has');
+        } else {
+          selEl.textContent = hintText;
+          selEl.classList.remove('has');
+        }
+      }
+      wrap.addEventListener('click', function (e) {
+        var nEl = e.target.closest('.nnode');
+        if (!nEl) { if (sel) select(null); return; }
+        var id = nEl.dataset.id;
+        if (sel === id) { location.hash = '#/detail/' + id; return; }
+        beep('tap');
+        select(id);
+      });
+      selEl.addEventListener('click', function () { if (sel) location.hash = '#/detail/' + sel; });
+    });
+  };
+}
+
 /* ---------- card collection ---------- */
 function dots(n, max) {
   n = Math.max(0, Math.min(max, n || 0));
@@ -2150,6 +2340,7 @@ function route() {
   if (h.indexOf('#/cards') === 0) { viewCards(parseQuery(h))(); return; }
   if ((m = h.match(/^#\/card\/([A-Za-z]+-\d+)/))) { viewCard(m[1])(); return; }
   if (h.indexOf('#/terms') === 0) { viewTerms(parseQuery(h))(); return; }
+  if (h.indexOf('#/network') === 0) { viewNetwork()(); return; }
   if (h.indexOf('#/settings') === 0) { viewSettings()(); return; }
   closeView(); renderHome();
 }

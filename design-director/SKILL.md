@@ -240,3 +240,14 @@ This skill holds the *judgment*. Keep the three consistent.
   persistent chrome, not injected per-view — one fixed, always-in-the-same-place spot beats a
   per-screen element; (2) top-right is the expected home for a close/back on this app; (3) keep the
   control small (an icon-ish "◀ back", not a worded button) — discoverable ≠ big.
+- **2026-07-11** — Network star map (`#/network`, v15) design calls: (1) **tag-shared edges (dashed,
+  faint) added alongside `ai.relatedIds` (solid)** — the author has no API key yet, so relatedIds are
+  empty; a map with no lines fails "useful today". Faintness keeps AI links visually primary. Tags on
+  9+ records draw no edges (too generic → hairball). (2) **Layout is deterministic** (seeded from
+  record IDs + fixed iterations): a star map should be a *fixed sky* — positions become memorable;
+  reshuffling every visit destroys that. (3) **Node motion is opacity twinkle, not positional drift**:
+  drifting nodes visibly detach from their static edge endpoints; never move geometry that lines are
+  anchored to. (4) **Two-tap open accepted** (tap=select+highlight neighbors, tap again=detail): this
+  is an exploratory view, not the capture/search hot path, and node labels only show IDs — the select
+  step surfaces the title in a fixed readout bar. (5) Fit-without-scroll rule applied (like the 図鑑);
+  in short landscape viewports the legend bar hides to make room.
