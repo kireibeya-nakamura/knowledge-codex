@@ -165,6 +165,20 @@ annoying to use is a failure; a plain screen that's fast and clear is a success 
 
 ---
 
+## Operating procedure (how work ships on this project)
+
+Read `HANDOFF.md` in the repo for the full map (architecture, routes, data model, deploy).
+The short version any model must follow:
+
+1. Small changes, one theme per version. Edit `index.html` (single file, no build, no deps).
+2. Append a `CHANGELOG.md` entry (vN, what/why/verification) — the author treats this as required.
+3. Verify locally when possible (`codex-static` preview, port 8127; mobile emulation is unreliable —
+   responsive checks happen on the author's phone, both orientations).
+4. Commit & push → GitHub Actions deploys in 1–2 min. If deploy fails, **never rerun the failed
+   job** (duplicate-artifact error) — trigger a fresh `workflow_dispatch` instead.
+5. Give the author the `?v=N` URL and ask for phone confirmation before building further.
+6. Never break existing IndexedDB data — schema changes go through versioned migration.
+
 ## Keep this skill alive (the design log)
 
 This is the part that lets the author keep the same taste without the original director. **After any

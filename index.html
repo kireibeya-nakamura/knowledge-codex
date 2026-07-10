@@ -237,11 +237,6 @@
   .hud-back:active { transform: scale(0.96); }
   body.view-open .hud .stats, body.view-open .hud .gear { display: none; }
   body.view-open .hud-back { display: inline-block; }
-  .vhead .back {
-    cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line);
-    border-radius: 4px; padding: 3px 10px; font-size: 11px; white-space: nowrap;
-  }
-  .vhead .back:hover { color: var(--cyan); border-color: var(--line-bright); }
   .vhead .jp { margin-left: auto; color: var(--muted); letter-spacing: 0; font-family: "Segoe UI", system-ui, sans-serif; font-size: 11px; }
   .vbody { padding: 16px 16px 20px; }
 
@@ -444,8 +439,6 @@
 
   .cardspace { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 6px; min-height: 70vh; justify-content: center; }
   .cshud { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: space-between; }
-  .cshud .back { cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line); border-radius: 4px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; }
-  .cshud .back:hover { color: var(--cyan); border-color: var(--line-bright); }
   .cshud .cid { font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--cyan-dim); }
   .cstage { perspective: 1100px; touch-action: none; padding: 10px 0 4px; cursor: grab; user-select: none; -webkit-user-select: none; }
   .cstage:active { cursor: grabbing; }
