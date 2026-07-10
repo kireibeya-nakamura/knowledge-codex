@@ -364,8 +364,16 @@
   .gterm .gsrc .tag { cursor: pointer; }
   .gterm .gsrc .tag:hover { color: var(--cyan); border-color: var(--cyan); }
 
-  .netpanel { max-width: 1100px; }
-  .netsvg { display: block; width: 100%; }
+  .netpanel { max-width: 780px; }
+  #net-wrap { position: relative; perspective: 1100px; touch-action: none; overflow: hidden; cursor: grab; }
+  #net-wrap:active { cursor: grabbing; }
+  #net-stage { position: absolute; left: 50%; top: 50%; will-change: transform; }
+  .netsvg { display: block; }
+  .nrings circle, .nrings line { fill: none; stroke: rgba(58,110,255,0.09); }
+  .nrings circle:last-of-type { stroke: rgba(58,110,255,0.16); }
+  #net-card { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); width: 172px; display: none; z-index: 3; }
+  #net-card.show { display: block; animation: viewIn 0.18s ease-out; }
+  #net-card .ccard { cursor: pointer; box-shadow: 0 0 20px rgba(58,110,255,0.45); }
   .nlink { stroke: rgba(122,160,255,0.5); stroke-width: 1; }
   .nlink.tag { stroke: rgba(122,160,255,0.22); stroke-dasharray: 3 4; }
   .nlink.lit { stroke: rgba(122,160,255,0.95); filter: drop-shadow(0 0 3px rgba(58,110,255,0.8)); }
@@ -390,12 +398,18 @@
   .netbar i.captured { border-color: var(--amber); background: rgba(255,217,138,0.2); }
   .netbar i.enriched { border-color: var(--cyan); background: rgba(58,110,255,0.25); }
   .netbar i.applied { border-color: var(--green); background: rgba(159,230,184,0.2); }
-  .netsel { margin-top: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px dashed rgba(58,110,255,0.3); border-radius: 3px; padding: 7px 10px; }
-  .netsel.has { color: var(--text); border: 1px solid var(--line-bright); cursor: pointer; background: rgba(58,110,255,0.08); }
-  .netsel.has:active { transform: scale(0.99); }
-  .netsel .nid { color: var(--cyan); margin-right: 6px; }
-  .netsel .ngo { color: var(--cyan); float: right; }
-  @media (max-height: 480px) { .netbar { display: none; } .netsel { padding: 4px 8px; } }
+  .netsel { margin-top: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px dashed rgba(58,110,255,0.3); border-radius: 3px; padding: 7px 10px; text-align: center; }
+  @media (max-height: 480px) {
+    .netbar { display: none; }
+    .netsel { padding: 4px 8px; }
+    #net-card { left: auto; right: 8px; transform: none; width: 118px; }
+    #net-card .ccard { aspect-ratio: auto; }
+    #net-card .ccard .cone, #net-card .ccard .cstats, #net-card .ccard .cfoot, #net-card .ccard .chead .chip { display: none; }
+    #net-card .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; }
+    #net-card .ccard .cimg { margin: 5px 7px 0; }
+    #net-card .ccard .cbody { padding: 6px 7px 6px; }
+    #net-card .ccard .ctitle { font-size: 10px; font-weight: 400; letter-spacing: 0.2px; }
+  }
 
   .ccard {
     position: relative; width: 100%; aspect-ratio: 63/88;
@@ -2073,8 +2087,11 @@ function layoutGraph(g, W, H) {
       dy = disp[i].y + (H / 2 - pos[i].y) * 0.02;
       d = Math.sqrt(dx * dx + dy * dy) || 0.01;
       var m = Math.min(d, cap);
-      pos[i].x = Math.max(pad, Math.min(W - pad, pos[i].x + dx / d * m));
-      pos[i].y = Math.max(pad, Math.min(H - pad, pos[i].y + dy / d * m));
+      pos[i].x += dx / d * m; pos[i].y += dy / d * m;
+      /* 円形拘束: 回転させても常に収まる */
+      var ox = pos[i].x - W / 2, oy = pos[i].y - H / 2;
+      var od = Math.sqrt(ox * ox + oy * oy), OR = Math.min(W, H) / 2 - pad;
+      if (od > OR) { pos[i].x = W / 2 + ox / od * OR; pos[i].y = H / 2 + oy / od * OR; }
     }
   }
   return pos;
@@ -2084,23 +2101,24 @@ function viewNetwork() {
     vhead('NETWORK', '関連知識の星図 — つながりが見えます') +
     '<div class="vbody">' +
     '<div class="netbar"><span><i class="captured"></i>未整理<i class="enriched"></i>AI整理済<i class="applied"></i>使用済</span><span>── AI関連　┄┄ タグ共有</span></div>' +
-    '<div id="net-wrap"></div>' +
+    '<div id="net-wrap"><div id="net-stage"></div><div id="net-card"></div></div>' +
     '<div class="netsel" id="net-sel"></div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
       var g = buildGraph();
-      var wrap = $('#net-wrap', v), selEl = $('#net-sel', v);
-      var hintText = g.links.length ? '星をタップ ▸ もう一度タップで開く'
-        : '関連リンクはまだありません — AI整理やタグ共有で線がつながります';
-      selEl.textContent = hintText;
+      var wrap = $('#net-wrap', v), stage = $('#net-stage', v), cardEl = $('#net-card', v), selEl = $('#net-sel', v);
+      selEl.textContent = g.links.length ? '地図をドラッグで回転 ／ 星をタップ ▸ カードから開く'
+        : 'ドラッグで回転。リンクはまだありません — AI整理やタグ共有でつながります';
       if (!g.nodes.length) {
         wrap.innerHTML = '<div class="empty"><div class="big">NO STARS</div>知識を登録すると星図に現れます</div>';
         return;
       }
-      var W = wrap.clientWidth || 600;
-      var H = Math.max(160, innerHeight - wrap.getBoundingClientRect().top - selEl.offsetHeight - 52);
-      var pos = layoutGraph(g, W, H);
+      var availW = wrap.clientWidth || 600;
+      var availH = Math.max(160, innerHeight - wrap.getBoundingClientRect().top - selEl.offsetHeight - 52);
+      wrap.style.height = availH + 'px';
+      var S = Math.round(Math.min(availW, availH * 1.45));
+      var pos = layoutGraph(g, S, S);
       var idx = {}, deg = {}, neighbors = {};
       g.nodes.forEach(function (r, i) { idx[r.id] = i; });
       g.links.forEach(function (l) {
@@ -2108,6 +2126,11 @@ function viewNetwork() {
         (neighbors[l.a] = neighbors[l.a] || {})[l.b] = 1;
         (neighbors[l.b] = neighbors[l.b] || {})[l.a] = 1;
       });
+      var C = S / 2, R = C - 34;
+      var rings = '<g class="nrings">' +
+        [0.35, 0.68, 1].map(function (f) { return '<circle cx="' + C + '" cy="' + C + '" r="' + (R * f).toFixed(0) + '"/>'; }).join('') +
+        '<line x1="' + (C - R) + '" y1="' + C + '" x2="' + (C + R) + '" y2="' + C + '"/>' +
+        '<line x1="' + C + '" y1="' + (C - R) + '" x2="' + C + '" y2="' + (C + R) + '"/></g>';
       var lines = g.links.map(function (l) {
         var a = pos[idx[l.a]], b = pos[idx[l.b]];
         return '<line class="nlink ' + l.kind + '" data-la="' + esc(l.a) + '" data-lb="' + esc(l.b) + '"' +
@@ -2125,40 +2148,88 @@ function viewNetwork() {
           '<text y="' + (s + 13).toFixed(0) + '">' + esc(r.id) + '</text>' +
           '</g>';
       }).join('');
-      wrap.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" xmlns="http://www.w3.org/2000/svg">' + lines + nodesSvg + '</svg>';
+      stage.style.width = S + 'px'; stage.style.height = S + 'px';
+      stage.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S + '" xmlns="http://www.w3.org/2000/svg">' + rings + lines + nodesSvg + '</svg>';
+
+      /* 3D地図: rotateXで傾け、rotateZ=スピン（ドラッグ+慣性）。ラベルは逆回転で常に読める向き */
+      var tiltMin = Math.max(15, Math.acos(Math.min(1, availH * 0.88 / S)) * 180 / Math.PI);
+      var spin = 0, tilt = Math.max(52, tiltMin + 2), vel = 0, rafId = 0;
+      var texts = [].slice.call(stage.querySelectorAll('.nnode text'));
+      function applyT() {
+        stage.style.transform = 'translate(-50%,-50%) rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg)';
+        var a = (-spin).toFixed(1);
+        texts.forEach(function (t) { t.setAttribute('transform', 'rotate(' + a + ')'); });
+      }
+      applyT();
+
       var sel = null;
       function select(id) {
         sel = id;
-        [].forEach.call(v.querySelectorAll('.nnode'), function (el) {
+        [].forEach.call(stage.querySelectorAll('.nnode'), function (el) {
           var isSel = el.dataset.id === id;
           var linked = !!(id && neighbors[id] && neighbors[id][el.dataset.id]);
           el.classList.toggle('sel', isSel);
           el.classList.toggle('lit', linked);
           el.classList.toggle('dim', !!id && !isSel && !linked);
         });
-        [].forEach.call(v.querySelectorAll('.nlink'), function (el) {
+        [].forEach.call(stage.querySelectorAll('.nlink'), function (el) {
           var on = !!(id && (el.dataset.la === id || el.dataset.lb === id));
           el.classList.toggle('lit', on);
           el.classList.toggle('dim', !!id && !on);
         });
         if (id) {
-          var r = g.nodes[idx[id]];
-          selEl.innerHTML = '<span class="nid">' + esc(id) + '</span>' + esc(r.title) + '<span class="ngo">開く ▸</span>';
-          selEl.classList.add('has');
+          cardEl.innerHTML = cardFaceHTML(g.nodes[idx[id]]);
+          hydrateCardImgs(cardEl);
+          cardEl.classList.add('show');
         } else {
-          selEl.textContent = hintText;
-          selEl.classList.remove('has');
+          cardEl.classList.remove('show');
+          cardEl.innerHTML = '';
         }
       }
-      wrap.addEventListener('click', function (e) {
-        var nEl = e.target.closest('.nnode');
-        if (!nEl) { if (sel) select(null); return; }
-        var id = nEl.dataset.id;
-        if (sel === id) { location.hash = '#/detail/' + id; return; }
-        beep('tap');
-        select(id);
+      cardEl.addEventListener('click', function () { if (sel) location.hash = '#/detail/' + sel; });
+
+      var down = null, moved = false, lastX = 0, lastY = 0, lastDX = 0, hitNode = null;
+      function step() {
+        vel *= 0.94; spin += vel; applyT();
+        rafId = Math.abs(vel) > 0.05 && document.body.contains(stage) ? requestAnimationFrame(step) : 0;
+      }
+      wrap.addEventListener('pointerdown', function (e) {
+        if (e.target.closest('#net-card')) return;
+        down = { x: e.clientX, y: e.clientY, t: Date.now() };
+        moved = false; lastX = e.clientX; lastY = e.clientY; lastDX = 0; vel = 0;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        hitNode = e.target.closest('.nnode');
+        try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
       });
-      selEl.addEventListener('click', function () { if (sel) location.hash = '#/detail/' + sel; });
+      wrap.addEventListener('pointermove', function (e) {
+        if (!down) return;
+        var dx = e.clientX - lastX, dy = e.clientY - lastY;
+        if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 9) moved = true;
+        if (moved) {
+          spin += dx * 0.4;
+          tilt = Math.max(tiltMin, Math.min(74, tilt - dy * 0.25));
+          lastDX = dx;
+          applyT();
+        }
+        lastX = e.clientX; lastY = e.clientY;
+      });
+      wrap.addEventListener('pointerup', function (e) {
+        if (!down) return;
+        var wasTap = !moved && Date.now() - down.t < 500;
+        down = null;
+        if (wasTap) {
+          if (hitNode) {
+            var id = hitNode.dataset.id;
+            if (sel === id) { location.hash = '#/detail/' + id; return; }
+            beep('tap');
+            select(id);
+          } else if (sel) select(null);
+          return;
+        }
+        vel = Math.max(-14, Math.min(14, lastDX * 0.55));
+        if (Math.abs(vel) > 0.3) { beep('spin'); step(); }
+      });
+      wrap.addEventListener('pointercancel', function () { down = null; });
     });
   };
 }

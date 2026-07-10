@@ -251,3 +251,15 @@ This skill holds the *judgment*. Keep the three consistent.
   is an exploratory view, not the capture/search hot path, and node labels only show IDs — the select
   step surfaces the title in a fixed readout bar. (5) Fit-without-scroll rule applied (like the 図鑑);
   in short landscape viewports the legend bar hides to make room.
+- **2026-07-11 (v16, supersedes parts of the line above)** — Author asked for the star map to be a
+  rotatable 3D *map* (flat chart, spinnable "like a map") and for node-tap to show a small card.
+  Decisions: (1) **The tilted-map is a sanctioned exception to "working screens flatten"** — the
+  doctrine's reason is input safety (never type into a tilted panel); the map is a pure viewing
+  surface with no inputs, and 3D *is* its content. Chrome (panel, legend, card) stays flat/screen-space.
+  (2) **Labels counter-rotate (north-up compass style)** so IDs are readable at any spin — never let
+  decoration invert text. (3) **Layout constraint switched from rect to circle** so any spin angle
+  fits the frame; tilt range is computed from viewport so the plane can never overflow. (4) The
+  readout bar was replaced by the **real knowledge card (cardFaceHTML) at 172px** — reusing the
+  actual card doubles as collection-feel and needed no new UI; at 172px the full card stays readable
+  so nothing is stripped (the "remove info when small" rule kicks in only for the ~120px landscape
+  variant). (5) Spin uses the card view's drag+inertia idiom — same gesture grammar everywhere.
