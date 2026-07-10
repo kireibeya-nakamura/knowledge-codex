@@ -367,13 +367,31 @@
   .netpanel { max-width: 780px; }
   #net-wrap { position: relative; perspective: 1100px; touch-action: none; overflow: hidden; cursor: grab; }
   #net-wrap:active { cursor: grabbing; }
+  #net-wrap::before {
+    content: ""; position: absolute; left: 50%; bottom: -12%; width: 130%; height: 72%;
+    transform: translateX(-50%); pointer-events: none;
+    background: radial-gradient(ellipse at 50% 100%, rgba(58,110,255,0.22), rgba(58,110,255,0.06) 46%, transparent 72%);
+    animation: netglow 9s ease-in-out infinite;
+  }
+  @keyframes netglow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
   #net-stage { position: absolute; left: 50%; top: 50%; will-change: transform; }
   .netsvg { display: block; }
   .nrings circle, .nrings line { fill: none; stroke: rgba(58,110,255,0.09); }
   .nrings circle:last-of-type { stroke: rgba(58,110,255,0.16); }
-  #net-card { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); width: 172px; display: none; z-index: 3; }
-  #net-card.show { display: block; animation: viewIn 0.18s ease-out; }
-  #net-card .ccard { cursor: pointer; box-shadow: 0 0 20px rgba(58,110,255,0.45); }
+  #net-card { position: absolute; transform: translateX(-50%); width: 172px; display: none; z-index: 3; }
+  #net-card.show { display: block; }
+  #net-card::after {
+    content: ""; position: absolute; top: 100%; left: 50%; width: 1px; height: 15px;
+    background: linear-gradient(180deg, rgba(122,160,255,0.8), transparent);
+  }
+  #net-card.below::after { top: auto; bottom: 100%; background: linear-gradient(0deg, rgba(122,160,255,0.8), transparent); }
+  #net-card .ccard {
+    cursor: pointer; backface-visibility: hidden;
+    box-shadow: 0 0 20px rgba(58,110,255,0.45), 0 10px 26px rgba(58,110,255,0.15);
+    animation: cardIn 0.6s ease-out;
+  }
+  @keyframes cardIn { from { opacity: 0; transform: rotateY(110deg) translateY(8px); } to { opacity: 1; transform: none; } }
+  .netsvg.many.zoomed .nnode text { display: block; }
   .nlink { stroke: rgba(122,160,255,0.5); stroke-width: 1; }
   .nlink.tag { stroke: rgba(122,160,255,0.22); stroke-dasharray: 3 4; }
   .nlink.lit { stroke: rgba(122,160,255,0.95); filter: drop-shadow(0 0 3px rgba(58,110,255,0.8)); }
@@ -402,7 +420,7 @@
   @media (max-height: 480px) {
     .netbar { display: none; }
     .netsel { padding: 4px 8px; }
-    #net-card { left: auto; right: 8px; transform: none; width: 118px; }
+    #net-card { width: 118px; }
     #net-card .ccard { aspect-ratio: auto; }
     #net-card .ccard .cone, #net-card .ccard .cstats, #net-card .ccard .cfoot, #net-card .ccard .chead .chip { display: none; }
     #net-card .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; }
@@ -2108,8 +2126,8 @@ function viewNetwork() {
     openView(html, function (v) {
       var g = buildGraph();
       var wrap = $('#net-wrap', v), stage = $('#net-stage', v), cardEl = $('#net-card', v), selEl = $('#net-sel', v);
-      selEl.textContent = g.links.length ? '地図をドラッグで回転 ／ 星をタップ ▸ カードから開く'
-        : 'ドラッグで回転。リンクはまだありません — AI整理やタグ共有でつながります';
+      selEl.textContent = g.links.length ? 'ドラッグ=移動 ／ ピンチ=ズーム・ひねりで回転 ／ 星をタップ ▸ カード'
+        : 'ドラッグ=移動 ピンチ=ズーム。リンクはまだありません — AI整理やタグ共有でつながります';
       if (!g.nodes.length) {
         wrap.innerHTML = '<div class="empty"><div class="big">NO STARS</div>知識を登録すると星図に現れます</div>';
         return;
@@ -2127,6 +2145,8 @@ function viewNetwork() {
         (neighbors[l.b] = neighbors[l.b] || {})[l.a] = 1;
       });
       var C = S / 2, R = C - 34;
+      var glow = '<defs><radialGradient id="nglow"><stop offset="0" stop-color="rgba(58,110,255,0.11)"/><stop offset="0.65" stop-color="rgba(58,110,255,0.04)"/><stop offset="1" stop-color="rgba(58,110,255,0)"/></radialGradient></defs>' +
+        '<circle cx="' + C + '" cy="' + C + '" r="' + R + '" fill="url(#nglow)"/>';
       var rings = '<g class="nrings">' +
         [0.35, 0.68, 1].map(function (f) { return '<circle cx="' + C + '" cy="' + C + '" r="' + (R * f).toFixed(0) + '"/>'; }).join('') +
         '<line x1="' + (C - R) + '" y1="' + C + '" x2="' + (C + R) + '" y2="' + C + '"/>' +
@@ -2149,20 +2169,43 @@ function viewNetwork() {
           '</g>';
       }).join('');
       stage.style.width = S + 'px'; stage.style.height = S + 'px';
-      stage.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S + '" xmlns="http://www.w3.org/2000/svg">' + rings + lines + nodesSvg + '</svg>';
+      stage.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S + '" xmlns="http://www.w3.org/2000/svg">' + glow + rings + lines + nodesSvg + '</svg>';
 
-      /* 3D地図: rotateXで傾け、rotateZ=スピン（ドラッグ+慣性）。ラベルは逆回転で常に読める向き */
+      /* 3D地図: チルト固定。1本指=移動（指に地図がついてくる）、2本指=ピンチズーム+ひねり回転、
+         ホイール=ズーム、Shift/右ドラッグ=回転。ラベルは逆回転+逆スケールで常に読める */
       var tiltMin = Math.max(15, Math.acos(Math.min(1, availH * 0.88 / S)) * 180 / Math.PI);
-      var spin = 0, tilt = Math.max(52, tiltMin + 2), vel = 0, rafId = 0;
+      var tilt = Math.max(52, tiltMin + 2);
+      var spin = 0, zoom = 1, panX = 0, panY = 0, rafId = 0;
       var texts = [].slice.call(stage.querySelectorAll('.nnode text'));
+      var svgEl = stage.querySelector('svg');
       function applyT() {
-        stage.style.transform = 'translate(-50%,-50%) rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg)';
-        var a = (-spin).toFixed(1);
-        texts.forEach(function (t) { t.setAttribute('transform', 'rotate(' + a + ')'); });
+        stage.style.transform = 'translate(calc(-50% + ' + panX.toFixed(1) + 'px), calc(-50% + ' + panY.toFixed(1) + 'px)) ' +
+          'rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg) scale(' + zoom.toFixed(3) + ')';
+        var lt = 'rotate(' + (-spin).toFixed(1) + ') scale(' + (1 / Math.sqrt(zoom)).toFixed(3) + ')';
+        texts.forEach(function (t) { t.setAttribute('transform', lt); });
+        svgEl.classList.toggle('zoomed', zoom > 1.6);
+        placeCard();
       }
       applyT();
 
       var sel = null;
+      function placeCard() {
+        if (!sel) return;
+        var nEl = stage.querySelector('.nnode.sel');
+        if (!nEl) return;
+        var nb = nEl.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
+        var cw = cardEl.offsetWidth || 172, ch = cardEl.offsetHeight || 240;
+        var x = nb.left + nb.width / 2 - wb.left;
+        cardEl.style.left = Math.max(cw / 2 + 4, Math.min(wb.width - cw / 2 - 4, x)) + 'px';
+        var above = nb.top - wb.top - 17 - ch;
+        if (above < 4) {
+          cardEl.classList.add('below');
+          cardEl.style.top = Math.min(wb.height - ch - 4, nb.bottom - wb.top + 17) + 'px';
+        } else {
+          cardEl.classList.remove('below');
+          cardEl.style.top = above + 'px';
+        }
+      }
       function select(id) {
         sel = id;
         [].forEach.call(stage.querySelectorAll('.nnode'), function (el) {
@@ -2181,6 +2224,7 @@ function viewNetwork() {
           cardEl.innerHTML = cardFaceHTML(g.nodes[idx[id]]);
           hydrateCardImgs(cardEl);
           cardEl.classList.add('show');
+          placeCard();
         } else {
           cardEl.classList.remove('show');
           cardEl.innerHTML = '';
@@ -2188,32 +2232,75 @@ function viewNetwork() {
       }
       cardEl.addEventListener('click', function () { if (sel) location.hash = '#/detail/' + sel; });
 
-      var down = null, moved = false, lastX = 0, lastY = 0, lastDX = 0, hitNode = null;
-      function step() {
-        vel *= 0.94; spin += vel; applyT();
-        rafId = Math.abs(vel) > 0.05 && document.body.contains(stage) ? requestAnimationFrame(step) : 0;
+      var pts = {}, ptCount = 0, down = null, moved = false, hitNode = null;
+      var lastDX = 0, lastDY = 0, pvx = 0, pvy = 0, prev2 = null;
+      function clampPan() {
+        var lim = S * zoom * 0.55;
+        panX = Math.max(-lim, Math.min(lim, panX));
+        panY = Math.max(-lim, Math.min(lim, panY));
+      }
+      function zoomAt(k, qx, qy) {
+        var z2 = Math.max(1, Math.min(3.5, zoom * k));
+        k = z2 / zoom;
+        panX = qx * (1 - k) + k * panX;
+        panY = qy * (1 - k) + k * panY;
+        zoom = z2; clampPan();
+      }
+      function glide() {
+        pvx *= 0.92; pvy *= 0.92; panX += pvx; panY += pvy; clampPan(); applyT();
+        rafId = (Math.abs(pvx) + Math.abs(pvy) > 0.4 && document.body.contains(stage)) ? requestAnimationFrame(glide) : 0;
+      }
+      function pair() {
+        var ids = Object.keys(pts);
+        var a = pts[ids[0]], b = pts[ids[1]];
+        return {
+          d: Math.max(20, Math.hypot(b.x - a.x, b.y - a.y)),
+          ang: Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI,
+          mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2
+        };
       }
       wrap.addEventListener('pointerdown', function (e) {
         if (e.target.closest('#net-card')) return;
-        down = { x: e.clientX, y: e.clientY, t: Date.now() };
-        moved = false; lastX = e.clientX; lastY = e.clientY; lastDX = 0; vel = 0;
+        pts[e.pointerId] = { x: e.clientX, y: e.clientY }; ptCount++;
         if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-        hitNode = e.target.closest('.nnode');
+        if (ptCount === 1) {
+          down = { x: e.clientX, y: e.clientY, t: Date.now() };
+          moved = false; lastDX = 0; lastDY = 0;
+          hitNode = e.target.closest('.nnode');
+        } else { moved = true; prev2 = ptCount === 2 ? pair() : null; }
         try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
       });
       wrap.addEventListener('pointermove', function (e) {
-        if (!down) return;
-        var dx = e.clientX - lastX, dy = e.clientY - lastY;
-        if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 9) moved = true;
-        if (moved) {
-          spin += dx * 0.4;
-          tilt = Math.max(tiltMin, Math.min(74, tilt - dy * 0.25));
-          lastDX = dx;
-          applyT();
+        var p = pts[e.pointerId];
+        if (!p) return;
+        var dx = e.clientX - p.x, dy = e.clientY - p.y;
+        p.x = e.clientX; p.y = e.clientY;
+        if (ptCount >= 2 && prev2) {
+          var cur = pair(), wb = wrap.getBoundingClientRect();
+          zoomAt(cur.d / prev2.d, cur.mx - wb.left - wb.width / 2, cur.my - wb.top - wb.height / 2);
+          var da = cur.ang - prev2.ang;
+          if (da > 180) da -= 360;
+          if (da < -180) da += 360;
+          spin += da;
+          panX += cur.mx - prev2.mx; panY += cur.my - prev2.my;
+          clampPan(); prev2 = cur; applyT();
+          return;
         }
-        lastX = e.clientX; lastY = e.clientY;
+        if (!down) return;
+        if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 9) moved = true;
+        if (!moved) return;
+        if (e.shiftKey || (e.buttons & 2)) {
+          spin += dx * 0.35;
+        } else {
+          panX += dx; panY += dy; lastDX = dx; lastDY = dy; clampPan();
+        }
+        applyT();
       });
       wrap.addEventListener('pointerup', function (e) {
+        if (!pts[e.pointerId]) return;
+        delete pts[e.pointerId]; ptCount--;
+        prev2 = null;
+        if (ptCount > 0) return;
         if (!down) return;
         var wasTap = !moved && Date.now() - down.t < 500;
         down = null;
@@ -2226,10 +2313,21 @@ function viewNetwork() {
           } else if (sel) select(null);
           return;
         }
-        vel = Math.max(-14, Math.min(14, lastDX * 0.55));
-        if (Math.abs(vel) > 0.3) { beep('spin'); step(); }
+        pvx = Math.max(-18, Math.min(18, lastDX));
+        pvy = Math.max(-18, Math.min(18, lastDY));
+        if (Math.abs(pvx) + Math.abs(pvy) > 1.2) { beep('spin'); glide(); }
       });
-      wrap.addEventListener('pointercancel', function () { down = null; });
+      wrap.addEventListener('pointercancel', function (e) {
+        if (pts[e.pointerId]) { delete pts[e.pointerId]; ptCount = Math.max(0, ptCount - 1); }
+        down = null; prev2 = null;
+      });
+      wrap.addEventListener('wheel', function (e) {
+        e.preventDefault();
+        var wb = wrap.getBoundingClientRect();
+        zoomAt(Math.exp(-e.deltaY * 0.0016), e.clientX - wb.left - wb.width / 2, e.clientY - wb.top - wb.height / 2);
+        applyT();
+      }, { passive: false });
+      wrap.addEventListener('contextmenu', function (e) { e.preventDefault(); });
     });
   };
 }

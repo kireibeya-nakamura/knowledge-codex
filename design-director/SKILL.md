@@ -263,3 +263,15 @@ This skill holds the *judgment*. Keep the three consistent.
   actual card doubles as collection-feel and needed no new UI; at 172px the full card stays readable
   so nothing is stripped (the "remove info when small" rule kicks in only for the ~120px landscape
   variant). (5) Spin uses the card view's drag+inertia idiom — same gesture grammar everywhere.
+- **2026-07-11 (v17, supersedes v16's gesture design)** — Author reported the v16 map controls felt
+  *inverted*. Root cause: drag-to-spin (and drag-to-tilt) has no stable mapping between finger
+  direction and what the eye tracks once the map is rotated. Fix: **adopt the standard map grammar**
+  — one finger drag = pan (the map follows the finger; can never invert), pinch = zoom (to pinch
+  midpoint / cursor), two-finger twist = rotate, wheel & Shift/right-drag on desktop. Vertical-drag
+  tilt was cut entirely (fixed angle): it was a knob nobody asked for and a second source of
+  inversion. **Lesson: for spatial navigation, don't invent gestures — borrow the grammar users
+  already know (Google Maps), and prefer mappings where the content tracks the finger 1:1.** Also:
+  card now materializes *above the tapped star* (rotateY 110°→0° over 0.6s, thin light-beam connector,
+  follows the star while the map moves) — anchoring feedback to the thing you touched beats a fixed
+  slot; and an under-light (breathing radial glow from below, 9s cycle) sells the holotable without
+  costing readability. Zoom range 1–3.5x, labels auto-reveal past 1.6x ("walk the map").
