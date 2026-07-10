@@ -275,3 +275,18 @@ This skill holds the *judgment*. Keep the three consistent.
   follows the star while the map moves) — anchoring feedback to the thing you touched beats a fixed
   slot; and an under-light (breathing radial glow from below, 9s cycle) sells the holotable without
   costing readability. Zoom range 1–3.5x, labels auto-reveal past 1.6x ("walk the map").
+- **2026-07-11 (v18, supersedes v17's gesture map)** — v17's map-grammar (drag=pan) was wrong for
+  this author: they *wanted* swipe-to-spin back, and named the target image precisely — **a small
+  diorama / military 3D-diagram (戦争の図解)**, not Google Maps. The v16 "inverted input" mystery was
+  actually the spin *sign*: users grab the near (bottom) edge of a tilted table, so swipe-right must
+  move the near edge right = `spin -= dx` (v16 had `+=`, so the far side followed the finger and it
+  felt reversed). Vertical swipe = camera height, Google-Earth direction (`tilt += dy`). Gesture map
+  now: 1-finger swipe = spin/tilt (with inertia), pinch = zoom, 2-finger drag = walk, Shift/right-drag
+  & wheel on desktop. **Lessons: (a) when a control "feels inverted," check the sign against where
+  the user's eye anchors (the near edge) before redesigning the whole grammar; (b) the author thinks
+  in cinematic/diorama metaphors — propose against that frame, not app-convention frames.** Cards
+  became true diorama pieces: an 86px mini-card (ID+image+title only) standing perpendicular on the
+  board at the star (billboarded via stage `preserve-3d` + counter-rotate), materializing with
+  rotateY; tapping it flies the camera in (0.75s, zoom 2.8x) so the same 3D object simply becomes
+  readable — one object, camera distance changes, no content swap; tap again (once focused) opens
+  detail. Screen-anchored popups are gone from this view.

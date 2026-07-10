@@ -374,23 +374,29 @@
     animation: netglow 9s ease-in-out infinite;
   }
   @keyframes netglow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-  #net-stage { position: absolute; left: 50%; top: 50%; will-change: transform; }
+  #net-stage { position: absolute; left: 50%; top: 50%; will-change: transform; transform-style: preserve-3d; }
   .netsvg { display: block; }
   .nrings circle, .nrings line { fill: none; stroke: rgba(58,110,255,0.09); }
   .nrings circle:last-of-type { stroke: rgba(58,110,255,0.16); }
-  #net-card { position: absolute; transform: translateX(-50%); width: 172px; display: none; z-index: 3; }
-  #net-card.show { display: block; }
-  #net-card::after {
-    content: ""; position: absolute; top: 100%; left: 50%; width: 1px; height: 15px;
-    background: linear-gradient(180deg, rgba(122,160,255,0.8), transparent);
+  #net-pin { position: absolute; z-index: 2; perspective: 400px; }
+  #net-pin::after {
+    content: ""; position: absolute; left: -0.5px; bottom: 0; width: 1px; height: 13px;
+    background: linear-gradient(0deg, rgba(122,160,255,0.9), rgba(122,160,255,0.25));
   }
-  #net-card.below::after { top: auto; bottom: 100%; background: linear-gradient(0deg, rgba(122,160,255,0.8), transparent); }
-  #net-card .ccard {
-    cursor: pointer; backface-visibility: hidden;
-    box-shadow: 0 0 20px rgba(58,110,255,0.45), 0 10px 26px rgba(58,110,255,0.15);
-    animation: cardIn 0.6s ease-out;
+  #net-pin .pincard {
+    position: absolute; left: 0; bottom: 13px; width: 86px;
+    transform: translateX(-50%); transform-origin: 50% 100%;
+    cursor: pointer; animation: pinIn 0.5s ease-out;
   }
-  @keyframes cardIn { from { opacity: 0; transform: rotateY(110deg) translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes pinIn { from { opacity: 0; transform: translateX(-50%) rotateY(100deg); } to { opacity: 1; transform: translateX(-50%); } }
+  #net-pin .ccard { aspect-ratio: auto; box-shadow: 0 0 14px rgba(58,110,255,0.5), 0 4px 14px rgba(3,7,17,0.5); }
+  #net-pin .ccard .cone, #net-pin .ccard .cstats, #net-pin .ccard .cfoot, #net-pin .ccard .chead .chip { display: none; }
+  #net-pin .ccard .cc { width: 6px; height: 6px; border-width: 1px; }
+  #net-pin .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 4px 6px 3px; }
+  #net-pin .ccard .cimg { margin: 4px 6px 0; }
+  #net-pin .ccard .cbody { padding: 5px 6px 5px; }
+  #net-pin .ccard .ctitle { font-size: 9px; font-weight: 400; letter-spacing: 0.2px; }
+  #net-pin .ccard .cimg .glyph { font-size: 12px; letter-spacing: 1px; }
   .netsvg.many.zoomed .nnode text { display: block; }
   .nlink { stroke: rgba(122,160,255,0.5); stroke-width: 1; }
   .nlink.tag { stroke: rgba(122,160,255,0.22); stroke-dasharray: 3 4; }
@@ -420,13 +426,7 @@
   @media (max-height: 480px) {
     .netbar { display: none; }
     .netsel { padding: 4px 8px; }
-    #net-card { width: 118px; }
-    #net-card .ccard { aspect-ratio: auto; }
-    #net-card .ccard .cone, #net-card .ccard .cstats, #net-card .ccard .cfoot, #net-card .ccard .chead .chip { display: none; }
-    #net-card .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; }
-    #net-card .ccard .cimg { margin: 5px 7px 0; }
-    #net-card .ccard .cbody { padding: 6px 7px 6px; }
-    #net-card .ccard .ctitle { font-size: 10px; font-weight: 400; letter-spacing: 0.2px; }
+    #net-pin .pincard { width: 72px; }
   }
 
   .ccard {
@@ -2119,15 +2119,15 @@ function viewNetwork() {
     vhead('NETWORK', '関連知識の星図 — つながりが見えます') +
     '<div class="vbody">' +
     '<div class="netbar"><span><i class="captured"></i>未整理<i class="enriched"></i>AI整理済<i class="applied"></i>使用済</span><span>── AI関連　┄┄ タグ共有</span></div>' +
-    '<div id="net-wrap"><div id="net-stage"></div><div id="net-card"></div></div>' +
+    '<div id="net-wrap"><div id="net-stage"></div></div>' +
     '<div class="netsel" id="net-sel"></div>' +
     '</div></div>';
   return function () {
     openView(html, function (v) {
       var g = buildGraph();
-      var wrap = $('#net-wrap', v), stage = $('#net-stage', v), cardEl = $('#net-card', v), selEl = $('#net-sel', v);
-      selEl.textContent = g.links.length ? 'ドラッグ=移動 ／ ピンチ=ズーム・ひねりで回転 ／ 星をタップ ▸ カード'
-        : 'ドラッグ=移動 ピンチ=ズーム。リンクはまだありません — AI整理やタグ共有でつながります';
+      var wrap = $('#net-wrap', v), stage = $('#net-stage', v), selEl = $('#net-sel', v);
+      selEl.textContent = g.links.length ? 'スワイプ=回転 ／ ピンチ=ズーム・2本指=移動 ／ 星をタップ ▸ カードへ接近'
+        : 'スワイプ=回転 ピンチ=ズーム。リンクはまだありません — AI整理やタグ共有でつながります';
       if (!g.nodes.length) {
         wrap.innerHTML = '<div class="empty"><div class="big">NO STARS</div>知識を登録すると星図に現れます</div>';
         return;
@@ -2171,41 +2171,25 @@ function viewNetwork() {
       stage.style.width = S + 'px'; stage.style.height = S + 'px';
       stage.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S + '" xmlns="http://www.w3.org/2000/svg">' + glow + rings + lines + nodesSvg + '</svg>';
 
-      /* 3D地図: チルト固定。1本指=移動（指に地図がついてくる）、2本指=ピンチズーム+ひねり回転、
-         ホイール=ズーム、Shift/右ドラッグ=回転。ラベルは逆回転+逆スケールで常に読める */
+      /* 3Dジオラマ: 1本指スワイプ=回転（横）/見下ろし角（縦）、2本指=ピンチズーム+ひねり回転+移動、
+         ホイール=ズーム、Shift/右ドラッグ=移動。星タップ=カードの駒が盤面に立つ→駒タップ=カメラ接近 */
       var tiltMin = Math.max(15, Math.acos(Math.min(1, availH * 0.88 / S)) * 180 / Math.PI);
       var tilt = Math.max(52, tiltMin + 2);
-      var spin = 0, zoom = 1, panX = 0, panY = 0, rafId = 0;
+      var spin = 0, zoom = 1, panX = 0, panY = 0, rafId = 0, flightId = 0;
       var texts = [].slice.call(stage.querySelectorAll('.nnode text'));
       var svgEl = stage.querySelector('svg');
+      var pinEl = null;
       function applyT() {
         stage.style.transform = 'translate(calc(-50% + ' + panX.toFixed(1) + 'px), calc(-50% + ' + panY.toFixed(1) + 'px)) ' +
           'rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg) scale(' + zoom.toFixed(3) + ')';
         var lt = 'rotate(' + (-spin).toFixed(1) + ') scale(' + (1 / Math.sqrt(zoom)).toFixed(3) + ')';
         texts.forEach(function (t) { t.setAttribute('transform', lt); });
         svgEl.classList.toggle('zoomed', zoom > 1.6);
-        placeCard();
+        if (pinEl) pinEl.style.transform = 'rotateZ(' + (-spin).toFixed(1) + 'deg) rotateX(' + (-tilt).toFixed(1) + 'deg)';
       }
       applyT();
 
       var sel = null;
-      function placeCard() {
-        if (!sel) return;
-        var nEl = stage.querySelector('.nnode.sel');
-        if (!nEl) return;
-        var nb = nEl.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
-        var cw = cardEl.offsetWidth || 172, ch = cardEl.offsetHeight || 240;
-        var x = nb.left + nb.width / 2 - wb.left;
-        cardEl.style.left = Math.max(cw / 2 + 4, Math.min(wb.width - cw / 2 - 4, x)) + 'px';
-        var above = nb.top - wb.top - 17 - ch;
-        if (above < 4) {
-          cardEl.classList.add('below');
-          cardEl.style.top = Math.min(wb.height - ch - 4, nb.bottom - wb.top + 17) + 'px';
-        } else {
-          cardEl.classList.remove('below');
-          cardEl.style.top = above + 'px';
-        }
-      }
       function select(id) {
         sel = id;
         [].forEach.call(stage.querySelectorAll('.nnode'), function (el) {
@@ -2220,20 +2204,58 @@ function viewNetwork() {
           el.classList.toggle('lit', on);
           el.classList.toggle('dim', !!id && !on);
         });
+        if (pinEl && pinEl.parentNode) pinEl.parentNode.removeChild(pinEl);
+        pinEl = null;
         if (id) {
-          cardEl.innerHTML = cardFaceHTML(g.nodes[idx[id]]);
-          hydrateCardImgs(cardEl);
-          cardEl.classList.add('show');
-          placeCard();
-        } else {
-          cardEl.classList.remove('show');
-          cardEl.innerHTML = '';
+          var p = pos[idx[id]];
+          pinEl = document.createElement('div');
+          pinEl.id = 'net-pin';
+          pinEl.style.left = p.x.toFixed(1) + 'px';
+          pinEl.style.top = p.y.toFixed(1) + 'px';
+          pinEl.innerHTML = '<div class="pincard">' + cardFaceHTML(g.nodes[idx[id]]) + '</div>';
+          stage.appendChild(pinEl);
+          hydrateCardImgs(pinEl);
+          applyT();
         }
       }
-      cardEl.addEventListener('click', function () { if (sel) location.hash = '#/detail/' + sel; });
+      /* カメラ接近: 選択中の星を画面中央やや下へ寄せながらズームイン */
+      function flyToPin() {
+        var nEl = stage.querySelector('.nnode.sel');
+        if (!nEl) return;
+        if (flightId) cancelAnimationFrame(flightId);
+        var z0 = zoom, zT = 2.8, t0 = null;
+        var desY = Math.min(availH * 0.3, 130);
+        beep('open');
+        function fr(ts) {
+          if (!document.body.contains(stage)) { flightId = 0; return; }
+          if (t0 === null) t0 = ts;
+          var u = Math.min(1, (ts - t0) / 750), e = u * u * (3 - 2 * u);
+          var nb = nEl.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
+          var sx = nb.left + nb.width / 2 - wb.left - wb.width / 2;
+          var sy = nb.top + nb.height / 2 - wb.top - wb.height / 2;
+          var zNow = z0 + (zT - z0) * e, k = zNow / zoom;
+          panX = sx * (1 - k) + k * panX;
+          panY = sy * (1 - k) + k * panY;
+          zoom = zNow;
+          panX += (0 - sx) * 0.16;
+          panY += (desY - sy) * 0.16;
+          applyT();
+          flightId = u < 1 ? requestAnimationFrame(fr) : 0;
+          if (!flightId) clampPan();
+        }
+        flightId = requestAnimationFrame(fr);
+      }
+      function pinFocused() {
+        var nEl = stage.querySelector('.nnode.sel');
+        if (!nEl || zoom < 2.2) return false;
+        var nb = nEl.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
+        var sx = nb.left + nb.width / 2 - wb.left - wb.width / 2;
+        var sy = nb.top + nb.height / 2 - wb.top - wb.height / 2 - Math.min(availH * 0.3, 130);
+        return Math.abs(sx) < 70 && Math.abs(sy) < 70;
+      }
 
-      var pts = {}, ptCount = 0, down = null, moved = false, hitNode = null;
-      var lastDX = 0, lastDY = 0, pvx = 0, pvy = 0, prev2 = null;
+      var pts = {}, ptCount = 0, down = null, moved = false, hitNode = null, hitPin = false;
+      var lastDX = 0, lastDY = 0, svel = 0, prev2 = null;
       function clampPan() {
         var lim = S * zoom * 0.55;
         panX = Math.max(-lim, Math.min(lim, panX));
@@ -2247,8 +2269,8 @@ function viewNetwork() {
         zoom = z2; clampPan();
       }
       function glide() {
-        pvx *= 0.92; pvy *= 0.92; panX += pvx; panY += pvy; clampPan(); applyT();
-        rafId = (Math.abs(pvx) + Math.abs(pvy) > 0.4 && document.body.contains(stage)) ? requestAnimationFrame(glide) : 0;
+        svel *= 0.94; spin += svel; applyT();
+        rafId = (Math.abs(svel) > 0.05 && document.body.contains(stage)) ? requestAnimationFrame(glide) : 0;
       }
       function pair() {
         var ids = Object.keys(pts);
@@ -2260,12 +2282,13 @@ function viewNetwork() {
         };
       }
       wrap.addEventListener('pointerdown', function (e) {
-        if (e.target.closest('#net-card')) return;
         pts[e.pointerId] = { x: e.clientX, y: e.clientY }; ptCount++;
         if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        if (flightId) { cancelAnimationFrame(flightId); flightId = 0; clampPan(); }
         if (ptCount === 1) {
           down = { x: e.clientX, y: e.clientY, t: Date.now() };
-          moved = false; lastDX = 0; lastDY = 0;
+          moved = false; lastDX = 0; lastDY = 0; svel = 0;
+          hitPin = !!e.target.closest('#net-pin');
           hitNode = e.target.closest('.nnode');
         } else { moved = true; prev2 = ptCount === 2 ? pair() : null; }
         try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
@@ -2290,9 +2313,12 @@ function viewNetwork() {
         if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 9) moved = true;
         if (!moved) return;
         if (e.shiftKey || (e.buttons & 2)) {
-          spin += dx * 0.35;
+          panX += dx; panY += dy; clampPan();
         } else {
-          panX += dx; panY += dy; lastDX = dx; lastDY = dy; clampPan();
+          /* 手前を掴んで回す向き: 右スワイプ=手前が右へ動く=反時計回り */
+          spin -= dx * 0.35;
+          tilt = Math.max(tiltMin, Math.min(74, tilt + dy * 0.2));
+          lastDX = dx;
         }
         applyT();
       });
@@ -2305,17 +2331,20 @@ function viewNetwork() {
         var wasTap = !moved && Date.now() - down.t < 500;
         down = null;
         if (wasTap) {
+          if (hitPin || (hitNode && sel && hitNode.dataset.id === sel)) {
+            /* 駒タップ: 接近済みなら詳細へ、遠ければカメラ接近 */
+            if (pinFocused()) { location.hash = '#/detail/' + sel; return; }
+            flyToPin();
+            return;
+          }
           if (hitNode) {
-            var id = hitNode.dataset.id;
-            if (sel === id) { location.hash = '#/detail/' + id; return; }
             beep('tap');
-            select(id);
+            select(hitNode.dataset.id);
           } else if (sel) select(null);
           return;
         }
-        pvx = Math.max(-18, Math.min(18, lastDX));
-        pvy = Math.max(-18, Math.min(18, lastDY));
-        if (Math.abs(pvx) + Math.abs(pvy) > 1.2) { beep('spin'); glide(); }
+        svel = Math.max(-12, Math.min(12, -lastDX * 0.45));
+        if (Math.abs(svel) > 0.3) { beep('spin'); glide(); }
       });
       wrap.addEventListener('pointercancel', function (e) {
         if (pts[e.pointerId]) { delete pts[e.pointerId]; ptCount = Math.max(0, ptCount - 1); }
