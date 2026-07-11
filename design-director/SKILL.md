@@ -290,3 +290,14 @@ This skill holds the *judgment*. Keep the three consistent.
   rotateY; tapping it flies the camera in (0.75s, zoom 2.8x) so the same 3D object simply becomes
   readable — one object, camera distance changes, no content swap; tap again (once focused) opens
   detail. Screen-anchored popups are gone from this view.
+- **2026-07-11 (v19)** — Two author corrections that sharpen the 3D doctrine for this view:
+  (1) **Never lock the camera to protect the frame.** v18 clamped tilt so the board couldn't overflow
+  the panel; near top-down the controls felt dead ("視点がロックされて動きにくい"). In a 3D view the
+  frame is a *viewport* — let content clip, free the orbit (tilt 2–88°), and solve "can't see it all"
+  with zoom-out (minZoom), not with camera restrictions. (2) **Billboarding breaks the fiction.**
+  The author explicitly rejected always-facing cards ("この空間は3Dで制作して"): a diorama piece faces
+  where it was placed; orbit behind it and you see its back (reused the card-back emblem face).
+  Placed-facing-camera at spawn, fixed thereafter. (3) Judged Three.js unnecessary: every requested
+  behavior (free orbit, fixed-orientation objects, real backfaces) is expressible in CSS 3D — the
+  dependency-zero rule outweighs engine glamour until something genuinely needs a mesh. Offer to
+  revisit only if per-node elevation / 3D link arcs get requested.

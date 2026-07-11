@@ -378,16 +378,19 @@
   .netsvg { display: block; }
   .nrings circle, .nrings line { fill: none; stroke: rgba(58,110,255,0.09); }
   .nrings circle:last-of-type { stroke: rgba(58,110,255,0.16); }
-  #net-pin { position: absolute; z-index: 2; perspective: 400px; }
+  #net-pin { position: absolute; z-index: 2; transform-style: preserve-3d; }
   #net-pin::after {
     content: ""; position: absolute; left: -0.5px; bottom: 0; width: 1px; height: 13px;
     background: linear-gradient(0deg, rgba(122,160,255,0.9), rgba(122,160,255,0.25));
   }
   #net-pin .pincard {
-    position: absolute; left: 0; bottom: 13px; width: 86px;
-    transform: translateX(-50%); transform-origin: 50% 100%;
+    position: absolute; left: 0; bottom: 13px; width: 86px; aspect-ratio: 63/88;
+    transform: translateX(-50%); transform-origin: 50% 100%; transform-style: preserve-3d;
     cursor: pointer; animation: pinIn 0.5s ease-out;
   }
+  #net-pin .cback .cbem { font-size: 18px; }
+  #net-pin .cback .cbt { font-size: 8px; letter-spacing: 2px; line-height: 1.5; }
+  #net-pin .cback .cbs { font-size: 5px; letter-spacing: 1px; }
   @keyframes pinIn { from { opacity: 0; transform: translateX(-50%) rotateY(100deg); } to { opacity: 1; transform: translateX(-50%); } }
   #net-pin .ccard { aspect-ratio: auto; box-shadow: 0 0 14px rgba(58,110,255,0.5), 0 4px 14px rgba(3,7,17,0.5); }
   #net-pin .ccard .cone, #net-pin .ccard .cstats, #net-pin .ccard .cfoot, #net-pin .ccard .chead .chip { display: none; }
@@ -2171,11 +2174,12 @@ function viewNetwork() {
       stage.style.width = S + 'px'; stage.style.height = S + 'px';
       stage.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S + '" xmlns="http://www.w3.org/2000/svg">' + glow + rings + lines + nodesSvg + '</svg>';
 
-      /* 3Dジオラマ: 1本指スワイプ=回転（横）/見下ろし角（縦）、2本指=ピンチズーム+ひねり回転+移動、
-         ホイール=ズーム、Shift/右ドラッグ=移動。星タップ=カードの駒が盤面に立つ→駒タップ=カメラ接近 */
-      var tiltMin = Math.max(15, Math.acos(Math.min(1, availH * 0.88 / S)) * 180 / Math.PI);
-      var tilt = Math.max(52, tiltMin + 2);
-      var spin = 0, zoom = 1, panX = 0, panY = 0, rafId = 0, flightId = 0;
+      /* 3Dジオラマ: 自由オービットカメラ（視点ロックなし）。1本指スワイプ=回転（横）/見下ろし角（縦）、
+         2本指=ピンチズーム+ひねり回転+移動、ホイール=ズーム、Shift/右ドラッグ=移動。
+         星タップ=カードの駒が3D空間に立つ（向きは置いた時のまま=裏に回れば裏面）→駒タップ=カメラ接近 */
+      var tiltMin = 2, tiltMax = 88;
+      var minZoom = Math.min(1, availH / S * 0.95);
+      var tilt = 52, spin = 0, zoom = 1, panX = 0, panY = 0, rafId = 0, flightId = 0;
       var texts = [].slice.call(stage.querySelectorAll('.nnode text'));
       var svgEl = stage.querySelector('svg');
       var pinEl = null;
@@ -2185,7 +2189,6 @@ function viewNetwork() {
         var lt = 'rotate(' + (-spin).toFixed(1) + ') scale(' + (1 / Math.sqrt(zoom)).toFixed(3) + ')';
         texts.forEach(function (t) { t.setAttribute('transform', lt); });
         svgEl.classList.toggle('zoomed', zoom > 1.6);
-        if (pinEl) pinEl.style.transform = 'rotateZ(' + (-spin).toFixed(1) + 'deg) rotateX(' + (-tilt).toFixed(1) + 'deg)';
       }
       applyT();
 
@@ -2212,10 +2215,18 @@ function viewNetwork() {
           pinEl.id = 'net-pin';
           pinEl.style.left = p.x.toFixed(1) + 'px';
           pinEl.style.top = p.y.toFixed(1) + 'px';
-          pinEl.innerHTML = '<div class="pincard">' + cardFaceHTML(g.nodes[idx[id]]) + '</div>';
+          /* 置いた瞬間にカメラの方を向いて立ち、以後は空間に固定（裏に回れば裏面が見える） */
+          pinEl.style.transform = 'rotateZ(' + (-spin).toFixed(1) + 'deg) rotateX(-90deg)';
+          pinEl.innerHTML = '<div class="pincard">' +
+            '<div class="cface">' + cardFaceHTML(g.nodes[idx[id]]) + '</div>' +
+            '<div class="cface backface"><div class="cback">' +
+              '<i class="cc tl"></i><i class="cc tr"></i><i class="cc bl"></i><i class="cc br"></i>' +
+              '<div class="cbem">◆</div>' +
+              '<div class="cbt">KNOWLEDGE<br>CODEX</div>' +
+            '</div></div>' +
+            '</div>';
           stage.appendChild(pinEl);
           hydrateCardImgs(pinEl);
-          applyT();
         }
       }
       /* カメラ接近: 選択中の星を画面中央やや下へ寄せながらズームイン */
@@ -2262,7 +2273,7 @@ function viewNetwork() {
         panY = Math.max(-lim, Math.min(lim, panY));
       }
       function zoomAt(k, qx, qy) {
-        var z2 = Math.max(1, Math.min(3.5, zoom * k));
+        var z2 = Math.max(minZoom, Math.min(3.5, zoom * k));
         k = z2 / zoom;
         panX = qx * (1 - k) + k * panX;
         panY = qy * (1 - k) + k * panY;
@@ -2317,7 +2328,7 @@ function viewNetwork() {
         } else {
           /* 手前を掴んで回す向き: 右スワイプ=手前が右へ動く=反時計回り */
           spin -= dx * 0.35;
-          tilt = Math.max(tiltMin, Math.min(74, tilt + dy * 0.2));
+          tilt = Math.max(tiltMin, Math.min(tiltMax, tilt + dy * 0.2));
           lastDX = dx;
         }
         applyT();
