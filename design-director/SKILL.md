@@ -301,3 +301,14 @@ This skill holds the *judgment*. Keep the three consistent.
   behavior (free orbit, fixed-orientation objects, real backfaces) is expressible in CSS 3D — the
   dependency-zero rule outweighs engine glamour until something genuinely needs a mesh. Offer to
   revisit only if per-node elevation / 3D link arcs get requested.
+- **2026-07-11 (v20, supersedes v19's free orbit)** — Free orbit failed on the phone (top-down became
+  an inescapable state) and the author proposed the right model themselves: **named camera states,
+  not continuous freedom** — a 「真上」 toggle button for top-down (auto zoom-to-fit), swipe = left/right
+  spin only, tilt gesture removed entirely. Card-piece tap now flies to the card's *front* from any
+  viewpoint (the pin remembers its placed heading; flight tweens spin+tilt→76°+zoom together).
+  **Lesson (caps the v17→v20 arc): on a phone, every continuous camera axis you expose is a state the
+  user can get lost in. Prefer a few named, animated viewpoints plus ONE tactile axis (the spin) —
+  the author consistently keeps the delight (くるくる) and cuts the freedom that needs skill. When a
+  control keeps failing across iterations, hand the state management to buttons and keep gestures for
+  the one motion that feels good.** Ghost-pointer purge added (reset pts map at zero fingers) as
+  stuck-state insurance.
