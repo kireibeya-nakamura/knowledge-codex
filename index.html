@@ -2137,8 +2137,8 @@ function viewNetwork() {
     openView(html, function (v) {
       var g = buildGraph();
       var wrap = $('#net-wrap', v), stage = $('#net-stage', v), selEl = $('#net-sel', v);
-      selEl.textContent = g.links.length ? 'スワイプ=回転 ／ ピンチ=ズーム・2本指=移動 ／ 星をタップ ▸ 駒タップで正面へ'
-        : 'スワイプ=回転 ピンチ=ズーム。リンクはまだありません — AI整理やタグ共有でつながります';
+      selEl.textContent = g.links.length ? 'スワイプ=回転・上下=角度 ／ ピンチ=ズーム・2本指=移動 ／ 星をタップ ▸ 駒タップで正面へ'
+        : 'スワイプ=回転・上下=角度 ピンチ=ズーム。リンクはまだありません — AI整理やタグ共有でつながります';
       if (!g.nodes.length) {
         wrap.innerHTML = '<div class="empty"><div class="big">NO STARS</div>知識を登録すると星図に現れます</div>';
         return;
@@ -2193,8 +2193,10 @@ function viewNetwork() {
       var svgEl = stage.querySelector('svg');
       var pinEl = null;
       function applyT() {
+        var z = zoom.toFixed(3);
+        /* scale3d: Z（駒の高さ方向）も等倍で拡大しないと、接近時に駒の縦横比が壊れる */
         stage.style.transform = 'translate(calc(-50% + ' + panX.toFixed(1) + 'px), calc(-50% + ' + panY.toFixed(1) + 'px)) ' +
-          'rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg) scale(' + zoom.toFixed(3) + ')';
+          'rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg) scale3d(' + z + ',' + z + ',' + z + ')';
         var lt = 'rotate(' + (-spin).toFixed(1) + ') scale(' + (1 / Math.sqrt(zoom)).toFixed(3) + ')';
         texts.forEach(function (t) { t.setAttribute('transform', lt); });
         svgEl.classList.toggle('zoomed', zoom > 1.6);
@@ -2372,8 +2374,14 @@ function viewNetwork() {
         if (e.shiftKey || (e.buttons & 2)) {
           panX += dx; panY += dy; clampPan();
         } else {
-          /* 手前を掴んで回す向き: 右スワイプ=手前が右へ動く=反時計回り。縦は割り当てなし（真上はボタン） */
+          /* 手前を掴んで回す向き: 右スワイプ=手前が右へ動く=反時計回り */
           spin -= dx * 0.35;
+          /* 上下=見下ろし角。26°〜72°の安全域のみ（真上0°へはボタンで。26°未満からは上げる方向のみ許可） */
+          var tn = tilt + dy * 0.2;
+          if (tn > 72) tn = 72;
+          if (tn < 26) tn = (tilt <= 26) ? Math.max(tn, tilt) : 26;
+          if (topMode && tn > tilt + 0.01) { topMode = false; $('#net-top', v).textContent = '◎ 真上'; }
+          tilt = tn;
           lastDX = dx;
         }
         applyT();

@@ -312,3 +312,12 @@ This skill holds the *judgment*. Keep the three consistent.
   control keeps failing across iterations, hand the state management to buttons and keep gestures for
   the one motion that feels good.** Ghost-pointer purge added (reset pts map at zero fingers) as
   stuck-state insurance.
+- **2026-07-11 (v21)** — Two refinements. (1) **CSS-3D gotcha worth remembering: `scale()` is 2D.**
+  The stage zoom used `scale(z)`, which scales the board plane's XY but not Z — so the standing card
+  pieces (whose height lives on the stage's Z axis) kept unit height while their width grew 2.8x on
+  approach: "縦横比がとんでもないことに". Any scene that stands children out of a scaled plane must
+  zoom with `scale3d(z,z,z)`. (2) Vertical tilt swipe returned, but **bounded to a safe band
+  (26°–72°)**: gestures can never enter the degenerate top-down zone (button-only, 0°), and from
+  below the band only upward motion is allowed, so swiping down in top view glides you smoothly back
+  into the diorama (auto-resetting the 真上 button label). Pattern to reuse: continuous axes are fine
+  when their range simply excludes every state that ever trapped the user.
