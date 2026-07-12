@@ -321,3 +321,20 @@ This skill holds the *judgment*. Keep the three consistent.
   below the band only upward motion is allowed, so swiping down in top view glides you smoothly back
   into the diorama (auto-resetting the 真上 button label). Pattern to reuse: continuous axes are fine
   when their range simply excludes every state that ever trapped the user.
+- **2026-07-11 (v22) — The star map was KILLED.** After seven iterations (v15–v21: flat chart →
+  holotable → diorama pieces → camera presets) the author called it 使いにくすぎる and asked for
+  removal. Complied fully — feature deleted, `ai.relatedIds` data kept intact. Lessons: (1) when the
+  interaction model needs re-invention every single round, the feature is fighting its medium —
+  a phone browser wants flat, tappable surfaces, not a navigable 3D scene; (2) usefulness-first
+  includes knowing when to fold: seven rounds of polish never fixed a foundation problem; (3) if
+  relation-visualization returns, start from a FLAT, list-or-2D form (e.g. "related records" chips
+  already in detail view, or a simple 2D constellation with zero camera) — do not resurrect the 3D
+  diorama on mobile.
+- **2026-07-11 (v23) — Sound doctrine upgraded: space is the premium.** Author referenced Blake
+  Sanchez "Futuristic HUD Sound Design" and again called the cues 安っぽい. The missing ingredient
+  was not the synthesis but the ROOM: a generated-IR convolution reverb (1.4s, highpassed return so
+  tails stay airy) turns the same quiet layers into "hologram in a space". Added a sub-low thump
+  layer (52–62Hz) as the physical floor of every action, data-tick runs (stepped micro-ticks) for
+  "open", and high shimmer partials (1046/1568Hz, fixed pitch) breathing in the verb; overall volumes
+  lowered. No-pitch-sweep rule still stands. Rule of thumb: **dry = cheap; the HUD identity is quiet
+  layers + real reverb + sub weight.**

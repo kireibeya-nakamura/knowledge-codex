@@ -364,82 +364,6 @@
   .gterm .gsrc .tag { cursor: pointer; }
   .gterm .gsrc .tag:hover { color: var(--cyan); border-color: var(--cyan); }
 
-  .netpanel { max-width: 780px; }
-  #net-wrap { position: relative; perspective: 1100px; touch-action: none; overflow: hidden; cursor: grab; }
-  #net-wrap:active { cursor: grabbing; }
-  #net-wrap::before {
-    content: ""; position: absolute; left: 50%; bottom: -12%; width: 130%; height: 72%;
-    transform: translateX(-50%); pointer-events: none;
-    background: radial-gradient(ellipse at 50% 100%, rgba(58,110,255,0.22), rgba(58,110,255,0.06) 46%, transparent 72%);
-    animation: netglow 9s ease-in-out infinite;
-  }
-  @keyframes netglow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-  #net-stage { position: absolute; left: 50%; top: 50%; will-change: transform; transform-style: preserve-3d; }
-  .netsvg { display: block; }
-  .nrings circle, .nrings line { fill: none; stroke: rgba(58,110,255,0.09); }
-  .nrings circle:last-of-type { stroke: rgba(58,110,255,0.16); }
-  #net-top {
-    position: absolute; top: 8px; right: 8px; z-index: 4;
-    font-family: var(--mono); font-size: 10px; letter-spacing: 1px;
-    color: var(--cyan-dim); background: rgba(6,13,34,0.75);
-    border: 1px solid var(--line); border-radius: 3px; padding: 5px 10px; cursor: pointer;
-  }
-  #net-top:hover { color: var(--cyan); border-color: var(--line-bright); }
-  #net-top:active { transform: scale(0.96); }
-  #net-pin { position: absolute; z-index: 2; transform-style: preserve-3d; }
-  #net-pin::after {
-    content: ""; position: absolute; left: -0.5px; bottom: 0; width: 1px; height: 13px;
-    background: linear-gradient(0deg, rgba(122,160,255,0.9), rgba(122,160,255,0.25));
-  }
-  #net-pin .pincard {
-    position: absolute; left: 0; bottom: 13px; width: 86px; aspect-ratio: 63/88;
-    transform: translateX(-50%); transform-origin: 50% 100%; transform-style: preserve-3d;
-    cursor: pointer; animation: pinIn 0.5s ease-out;
-  }
-  #net-pin .cback .cbem { font-size: 18px; }
-  #net-pin .cback .cbt { font-size: 8px; letter-spacing: 2px; line-height: 1.5; }
-  #net-pin .cback .cbs { font-size: 5px; letter-spacing: 1px; }
-  @keyframes pinIn { from { opacity: 0; transform: translateX(-50%) rotateY(100deg); } to { opacity: 1; transform: translateX(-50%); } }
-  #net-pin .ccard { aspect-ratio: auto; box-shadow: 0 0 14px rgba(58,110,255,0.5), 0 4px 14px rgba(3,7,17,0.5); }
-  #net-pin .ccard .cone, #net-pin .ccard .cstats, #net-pin .ccard .cfoot, #net-pin .ccard .chead .chip { display: none; }
-  #net-pin .ccard .cc { width: 6px; height: 6px; border-width: 1px; }
-  #net-pin .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 4px 6px 3px; }
-  #net-pin .ccard .cimg { margin: 4px 6px 0; }
-  #net-pin .ccard .cbody { padding: 5px 6px 5px; }
-  #net-pin .ccard .ctitle { font-size: 9px; font-weight: 400; letter-spacing: 0.2px; }
-  #net-pin .ccard .cimg .glyph { font-size: 12px; letter-spacing: 1px; }
-  .netsvg.many.zoomed .nnode text { display: block; }
-  .nlink { stroke: rgba(122,160,255,0.5); stroke-width: 1; }
-  .nlink.tag { stroke: rgba(122,160,255,0.22); stroke-dasharray: 3 4; }
-  .nlink.lit { stroke: rgba(122,160,255,0.95); filter: drop-shadow(0 0 3px rgba(58,110,255,0.8)); }
-  .nlink.dim { stroke-opacity: 0.14; }
-  .nnode { cursor: pointer; }
-  .nnode .core { stroke-width: 1.2; animation: ntwinkle var(--tw, 6s) ease-in-out infinite; animation-delay: var(--twd, 0s); }
-  @keyframes ntwinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
-  .nnode.st-captured .core { stroke: var(--amber); fill: rgba(255,217,138,0.16); }
-  .nnode.st-enriched .core { stroke: var(--cyan); fill: rgba(58,110,255,0.22); }
-  .nnode.st-applied .core { stroke: var(--green); fill: rgba(159,230,184,0.18); }
-  .nnode text { font-family: var(--mono); font-size: 9px; fill: var(--muted); text-anchor: middle; pointer-events: none; letter-spacing: 0.5px; }
-  .nnode.lone { opacity: 0.55; }
-  .nnode.dim { opacity: 0.2; }
-  .nnode.lit text { fill: var(--cyan-dim); }
-  .nnode.sel .core { filter: drop-shadow(0 0 6px rgba(122,160,255,0.9)); animation: none; opacity: 1; }
-  .nnode.sel text { fill: var(--cyan); }
-  .netsvg.many .nnode text { display: none; }
-  .netsvg.many .nnode.sel text, .netsvg.many .nnode.lit text { display: block; }
-  .netbar { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--muted); padding: 0 2px 8px; }
-  .netbar i { display: inline-block; width: 7px; height: 7px; transform: rotate(45deg); margin: 0 5px 0 12px; border: 1px solid; }
-  .netbar i:first-child { margin-left: 0; }
-  .netbar i.captured { border-color: var(--amber); background: rgba(255,217,138,0.2); }
-  .netbar i.enriched { border-color: var(--cyan); background: rgba(58,110,255,0.25); }
-  .netbar i.applied { border-color: var(--green); background: rgba(159,230,184,0.2); }
-  .netsel { margin-top: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--muted); border: 1px dashed rgba(58,110,255,0.3); border-radius: 3px; padding: 7px 10px; text-align: center; }
-  @media (max-height: 480px) {
-    .netbar { display: none; }
-    .netsel { padding: 4px 8px; }
-    #net-pin .pincard { width: 72px; }
-  }
-
   .ccard {
     position: relative; width: 100%; aspect-ratio: 63/88;
     display: flex; flex-direction: column;
@@ -702,7 +626,7 @@ function showToast(msg) {
 }
 
 /* ---------- sound (WebAudio synth) ---------- */
-var audioCtx = null, sndMaster = null, sndDelay = null, noiseBuf = null;
+var audioCtx = null, sndMaster = null, sndDelay = null, sndVerb = null, noiseBuf = null;
 function soundOn() { return localStorage.getItem('kx-sound') !== 'off'; }
 function audioReady() {
   if (!audioCtx) {
@@ -711,16 +635,30 @@ function audioReady() {
     audioCtx = new AC();
     // master bus: gain -> gentle lowpass -> destination (tames harsh highs)
     sndMaster = audioCtx.createGain();
-    sndMaster.gain.value = 0.85;
+    sndMaster.gain.value = 0.8;
     var lp = audioCtx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 7000; lp.Q.value = 0.5;
+    lp.type = 'lowpass'; lp.frequency.value = 7500; lp.Q.value = 0.5;
     sndMaster.connect(lp); lp.connect(audioCtx.destination);
-    // short feedback delay for a bit of "space" (send-based, thin and brief)
+    // short feedback delay: discreet echo (send-based, thin)
     sndDelay = audioCtx.createDelay(0.5);
     sndDelay.delayTime.value = 0.068;
-    var fb = audioCtx.createGain(); fb.gain.value = 0.16;
-    var wet = audioCtx.createGain(); wet.gain.value = 0.26;
+    var fb = audioCtx.createGain(); fb.gain.value = 0.14;
+    var wet = audioCtx.createGain(); wet.gain.value = 0.15;
     sndDelay.connect(fb); fb.connect(sndDelay); sndDelay.connect(wet); wet.connect(lp);
+    // convolution reverb: the "HUD in a room" air. Generated IR, no assets.
+    // Return is highpassed so tails stay airy, never muddy.
+    var irDur = 1.4, irLen = Math.floor(audioCtx.sampleRate * irDur);
+    var ir = audioCtx.createBuffer(2, irLen, audioCtx.sampleRate);
+    for (var c = 0; c < 2; c++) {
+      var d = ir.getChannelData(c);
+      for (var j = 0; j < irLen; j++) d[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / irLen, 3.2);
+    }
+    sndVerb = audioCtx.createConvolver();
+    sndVerb.buffer = ir;
+    var vhp = audioCtx.createBiquadFilter();
+    vhp.type = 'highpass'; vhp.frequency.value = 420; vhp.Q.value = 0.5;
+    var vg = audioCtx.createGain(); vg.gain.value = 0.55;
+    sndVerb.connect(vhp); vhp.connect(vg); vg.connect(lp);
     // one reusable noise buffer for tactile transients
     noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
     var nd = noiseBuf.getChannelData(0);
@@ -729,10 +667,11 @@ function audioReady() {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return true;
 }
-// ---- premium terminal sound design ----
+// ---- futuristic HUD sound design (参照: Blake Sanchez "Futuristic HUD Sound Design") ----
 // Doctrine: no oscillator pitch sweeps (reads as "pico-pico"). The identity is
-// hard filtered-noise transients (tck), glassy filter-swept noise (shk/tzin),
-// and quiet fixed-pitch low-mid tones for weight (vmm). Short, quiet, dry-ish.
+// quiet layers placed IN SPACE: filtered-noise transients (tck) + data-tick runs,
+// glassy filter-swept noise (shk), fixed-pitch shimmer partials, and a sub-low
+// thump (50-70Hz) for physical weight — all breathing through a soft airy reverb.
 
 // filtered noise: the click / scan / glass layer. Sweep the FILTER, never a pitch.
 function nz(o) {
@@ -751,6 +690,7 @@ function nz(o) {
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   src.connect(f); f.connect(g); g.connect(sndMaster);
   if (o.send) g.connect(sndDelay);
+  if (o.verb) g.connect(sndVerb);
   src.start(t); src.stop(t + dur + 0.02);
 }
 // fixed-pitch low/mid tone: body and warmth. Pitch stays put (or drifts a few Hz).
@@ -767,6 +707,7 @@ function tn(o) {
   g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   osc.connect(g); g.connect(sndMaster);
   if (o.send) g.connect(sndDelay);
+  if (o.verb) g.connect(sndVerb);
   osc.start(t); osc.stop(t + dur + 0.03);
 }
 function beep(kind) {
@@ -774,33 +715,42 @@ function beep(kind) {
   try {
     if (!audioReady()) return;
     switch (kind) {
-      case 'tap': // micro tick: hard tiny click + faint low weight ("tck")
-        nz({ type: 'highpass', fc0: 3800, q: 0.7, dur: 0.014, vol: 0.05 });
-        tn({ f: 170, dur: 0.035, vol: 0.026, atk: 0.002 });
+      case 'tap': // soft tick in air + sub weight: felt more than heard
+        nz({ type: 'bandpass', fc0: 2600, q: 1.4, dur: 0.016, vol: 0.042, verb: true });
+        tn({ f: 62, dur: 0.05, vol: 0.04, atk: 0.003 });
         break;
-      case 'open': // click, then a short hologram ignition ("tck → vmm")
-        nz({ type: 'highpass', fc0: 3800, q: 0.7, dur: 0.012, vol: 0.045 });
-        nz({ fc0: 600, fc1: 2400, q: 2.2, dur: 0.17, vol: 0.02, when: 0.02, send: true });
-        tn({ f: 196, f1: 202, dur: 0.16, vol: 0.03, type: 'triangle', atk: 0.02, when: 0.02, send: true });
+      case 'open': // HUD window materializes: tick → data-tick run + air swell + sub + faint shimmer
+        nz({ type: 'highpass', fc0: 3600, q: 0.7, dur: 0.012, vol: 0.028 });
+        nz({ type: 'bandpass', fc0: 3000, q: 3, dur: 0.018, vol: 0.02, when: 0.035, verb: true });
+        nz({ type: 'bandpass', fc0: 3500, q: 3, dur: 0.018, vol: 0.016, when: 0.065, verb: true });
+        nz({ type: 'bandpass', fc0: 4000, q: 3, dur: 0.018, vol: 0.012, when: 0.095, verb: true });
+        nz({ fc0: 700, fc1: 3200, q: 1.8, dur: 0.28, vol: 0.015, when: 0.02, send: true, verb: true });
+        tn({ f: 62, dur: 0.1, vol: 0.05, atk: 0.006 });
+        tn({ f: 1046.5, dur: 0.25, vol: 0.008, atk: 0.05, verb: true });
         break;
-      case 'ok': // quiet processed-complete: click + steady fifth dyad + glass dust ("tzin")
-        nz({ type: 'highpass', fc0: 4200, q: 0.7, dur: 0.01, vol: 0.03 });
-        tn({ f: 523.25, dur: 0.2, vol: 0.03, atk: 0.012, send: true });
-        tn({ f: 784, dur: 0.17, vol: 0.018, atk: 0.012, send: true });
-        nz({ fc0: 5200, q: 3, dur: 0.07, vol: 0.011, when: 0.02 });
+      case 'ok': // serene confirm: sub thump + warm dyad + high partial, breathing in reverb
+        tn({ f: 62, dur: 0.11, vol: 0.055, atk: 0.005 });
+        tn({ f: 523.25, dur: 0.3, vol: 0.022, atk: 0.02, verb: true });
+        tn({ f: 784, dur: 0.34, vol: 0.014, atk: 0.03, verb: true });
+        tn({ f: 1568, dur: 0.3, vol: 0.007, atk: 0.04, verb: true });
+        nz({ type: 'highpass', fc0: 4200, q: 0.7, dur: 0.01, vol: 0.02 });
+        nz({ fc0: 5600, q: 3.5, dur: 0.1, vol: 0.008, when: 0.05, verb: true });
         break;
-      case 'err': // muted low alert: two close low sines beating + soft thud ("brt")
-        tn({ f: 138, dur: 0.13, vol: 0.05, atk: 0.004 });
-        tn({ f: 104, dur: 0.15, vol: 0.036, atk: 0.004 });
-        nz({ type: 'lowpass', fc0: 420, q: 1, dur: 0.05, vol: 0.028 });
+      case 'err': // muted low alert: beating low sines + deep floor thud, slight room
+        tn({ f: 138, dur: 0.16, vol: 0.042, atk: 0.005, verb: true });
+        tn({ f: 104, dur: 0.19, vol: 0.03, atk: 0.005, verb: true });
+        nz({ type: 'lowpass', fc0: 380, q: 1, dur: 0.06, vol: 0.03 });
+        tn({ f: 52, dur: 0.12, vol: 0.045, atk: 0.004 });
         break;
-      case 'flip': // page scan: downward glassy sweep, tick at the end ("shk")
-        nz({ fc0: 1600, fc1: 520, q: 1.6, dur: 0.12, vol: 0.03 });
-        nz({ type: 'highpass', fc0: 3600, q: 0.7, dur: 0.012, vol: 0.026, when: 0.1 });
+      case 'flip': // page scan: downward glass sweep + breath layer, tick lands at the end
+        nz({ fc0: 1600, fc1: 520, q: 1.6, dur: 0.12, vol: 0.022, verb: true });
+        nz({ type: 'highpass', fc0: 5000, q: 0.6, dur: 0.14, vol: 0.008, verb: true });
+        nz({ type: 'highpass', fc0: 3600, q: 0.7, dur: 0.012, vol: 0.018, when: 0.1, send: true });
         break;
-      case 'spin': // card whirl: rising glass scan + faint tone, brief tail ("tzin")
-        nz({ fc0: 900, fc1: 4200, q: 2.4, dur: 0.2, vol: 0.02, send: true });
-        tn({ f: 660, dur: 0.14, vol: 0.014, atk: 0.03, send: true });
+      case 'spin': // whirl: rising glass scan into space + shimmer partial + sub touch
+        nz({ fc0: 900, fc1: 4200, q: 2.2, dur: 0.22, vol: 0.015, send: true, verb: true });
+        tn({ f: 1568, dur: 0.18, vol: 0.006, atk: 0.05, verb: true });
+        tn({ f: 62, dur: 0.06, vol: 0.03, atk: 0.004 });
         break;
     }
   } catch (e) {}
@@ -1098,7 +1048,6 @@ function renderHome() {
     '<div class="sysrow" data-go="#/list"><span>今月の登録</span><span class="v">' + monthly + '</span></div>' +
     '<div class="sysrow" data-go="#/list?status=applied"><span>使用済（実戦投入）</span><span class="v">' + applied + '</span></div>' +
     '<div class="sysrow" data-go="#/cards"><span>◆ COLLECTION — 知識カード</span><span class="v">' + active.length + '</span></div>' +
-    '<div class="sysrow" data-go="#/network"><span>✦ NETWORK — 関連の星図</span><span class="v">' + buildGraph().links.length + '</span></div>' +
     '<div class="sysrow" data-go="#/terms" style="display:block;"><span style="font-size:11px;color:var(--muted);">' + termLabel + '</span>' +
     '<div class="terms">' + termChips + '</div></div>';
 }
@@ -2050,395 +1999,6 @@ function viewTerms(q) {
   };
 }
 
-/* ---------- network star map ---------- */
-function buildGraph() {
-  var nodes = state.records.filter(function (r) { return r.status !== 'archived'; });
-  var has = {};
-  nodes.forEach(function (r) { has[r.id] = true; });
-  var seen = {}, links = [];
-  function add(a, b, kind) {
-    if (a === b || !has[a] || !has[b]) return;
-    var k = a < b ? a + '|' + b : b + '|' + a;
-    if (seen[k]) { if (kind === 'ai') seen[k].kind = 'ai'; return; }
-    var l = { a: a, b: b, kind: kind };
-    seen[k] = l;
-    links.push(l);
-  }
-  nodes.forEach(function (r) {
-    ((r.ai && r.ai.relatedIds) || []).forEach(function (t) { add(r.id, t, 'ai'); });
-  });
-  var byTag = {};
-  nodes.forEach(function (r) {
-    (r.tags || []).forEach(function (t) { (byTag[t] = byTag[t] || []).push(r.id); });
-  });
-  Object.keys(byTag).forEach(function (t) {
-    var ids = byTag[t];
-    if (ids.length < 2 || ids.length > 8) return; /* 8件超のタグは汎用すぎるので線にしない */
-    for (var i = 0; i < ids.length; i++)
-      for (var j = i + 1; j < ids.length; j++) add(ids[i], ids[j], 'tag');
-  });
-  return { nodes: nodes, links: links };
-}
-function layoutGraph(g, W, H) {
-  var n = g.nodes.length, pos = [], idx = {}, pad = 34;
-  g.nodes.forEach(function (r, i) {
-    idx[r.id] = i;
-    var h = 2166136261;
-    for (var c = 0; c < r.id.length; c++) h = ((h ^ r.id.charCodeAt(c)) * 16777619) >>> 0;
-    var ang = (h % 3600) / 3600 * Math.PI * 2;
-    var rad = 0.2 + ((h >>> 12) % 1000) / 1000 * 0.72;
-    pos.push({ x: W / 2 + Math.cos(ang) * rad * (W / 2 - pad), y: H / 2 + Math.sin(ang) * rad * (H / 2 - pad) });
-  });
-  var K = Math.sqrt(W * H / Math.max(1, n)) * 0.72;
-  var ITER = 240;
-  for (var it = 0; it < ITER; it++) {
-    var cap = Math.max(0.6, K * 0.5 * (1 - it / ITER));
-    var disp = pos.map(function () { return { x: 0, y: 0 }; });
-    var i, j, dx, dy, d, f;
-    for (i = 0; i < n; i++) for (j = i + 1; j < n; j++) {
-      dx = pos[i].x - pos[j].x; dy = pos[i].y - pos[j].y;
-      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      f = K * K / (d * d);
-      disp[i].x += dx / d * f * K; disp[i].y += dy / d * f * K;
-      disp[j].x -= dx / d * f * K; disp[j].y -= dy / d * f * K;
-    }
-    g.links.forEach(function (l) {
-      var a = idx[l.a], b = idx[l.b];
-      var w = l.kind === 'ai' ? 1 : 0.45;
-      dx = pos[a].x - pos[b].x; dy = pos[a].y - pos[b].y;
-      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      f = d * d / K * w;
-      disp[a].x -= dx / d * f; disp[a].y -= dy / d * f;
-      disp[b].x += dx / d * f; disp[b].y += dy / d * f;
-    });
-    for (i = 0; i < n; i++) {
-      dx = disp[i].x + (W / 2 - pos[i].x) * 0.02;
-      dy = disp[i].y + (H / 2 - pos[i].y) * 0.02;
-      d = Math.sqrt(dx * dx + dy * dy) || 0.01;
-      var m = Math.min(d, cap);
-      pos[i].x += dx / d * m; pos[i].y += dy / d * m;
-      /* 円形拘束: 回転させても常に収まる */
-      var ox = pos[i].x - W / 2, oy = pos[i].y - H / 2;
-      var od = Math.sqrt(ox * ox + oy * oy), OR = Math.min(W, H) / 2 - pad;
-      if (od > OR) { pos[i].x = W / 2 + ox / od * OR; pos[i].y = H / 2 + oy / od * OR; }
-    }
-  }
-  return pos;
-}
-function viewNetwork() {
-  var html = '<div class="vpanel netpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
-    vhead('NETWORK', '関連知識の星図 — つながりが見えます') +
-    '<div class="vbody">' +
-    '<div class="netbar"><span><i class="captured"></i>未整理<i class="enriched"></i>AI整理済<i class="applied"></i>使用済</span><span>── AI関連　┄┄ タグ共有</span></div>' +
-    '<div id="net-wrap"><div id="net-stage"></div><button id="net-top">◎ 真上</button></div>' +
-    '<div class="netsel" id="net-sel"></div>' +
-    '</div></div>';
-  return function () {
-    openView(html, function (v) {
-      var g = buildGraph();
-      var wrap = $('#net-wrap', v), stage = $('#net-stage', v), selEl = $('#net-sel', v);
-      selEl.textContent = g.links.length ? 'スワイプ=回転・上下=角度 ／ ピンチ=ズーム・2本指=移動 ／ 星をタップ ▸ 駒タップで正面へ'
-        : 'スワイプ=回転・上下=角度 ピンチ=ズーム。リンクはまだありません — AI整理やタグ共有でつながります';
-      if (!g.nodes.length) {
-        wrap.innerHTML = '<div class="empty"><div class="big">NO STARS</div>知識を登録すると星図に現れます</div>';
-        return;
-      }
-      var availW = wrap.clientWidth || 600;
-      var availH = Math.max(160, innerHeight - wrap.getBoundingClientRect().top - selEl.offsetHeight - 52);
-      wrap.style.height = availH + 'px';
-      var S = Math.round(Math.min(availW, availH * 1.45));
-      var pos = layoutGraph(g, S, S);
-      var idx = {}, deg = {}, neighbors = {};
-      g.nodes.forEach(function (r, i) { idx[r.id] = i; });
-      g.links.forEach(function (l) {
-        deg[l.a] = (deg[l.a] || 0) + 1; deg[l.b] = (deg[l.b] || 0) + 1;
-        (neighbors[l.a] = neighbors[l.a] || {})[l.b] = 1;
-        (neighbors[l.b] = neighbors[l.b] || {})[l.a] = 1;
-      });
-      var C = S / 2, R = C - 34;
-      var glow = '<defs><radialGradient id="nglow"><stop offset="0" stop-color="rgba(58,110,255,0.11)"/><stop offset="0.65" stop-color="rgba(58,110,255,0.04)"/><stop offset="1" stop-color="rgba(58,110,255,0)"/></radialGradient></defs>' +
-        '<circle cx="' + C + '" cy="' + C + '" r="' + R + '" fill="url(#nglow)"/>';
-      var rings = '<g class="nrings">' +
-        [0.35, 0.68, 1].map(function (f) { return '<circle cx="' + C + '" cy="' + C + '" r="' + (R * f).toFixed(0) + '"/>'; }).join('') +
-        '<line x1="' + (C - R) + '" y1="' + C + '" x2="' + (C + R) + '" y2="' + C + '"/>' +
-        '<line x1="' + C + '" y1="' + (C - R) + '" x2="' + C + '" y2="' + (C + R) + '"/></g>';
-      var lines = g.links.map(function (l) {
-        var a = pos[idx[l.a]], b = pos[idx[l.b]];
-        return '<line class="nlink ' + l.kind + '" data-la="' + esc(l.a) + '" data-lb="' + esc(l.b) + '"' +
-          ' x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1) + '" x2="' + b.x.toFixed(1) + '" y2="' + b.y.toFixed(1) + '"/>';
-      }).join('');
-      var nodesSvg = g.nodes.map(function (r, i) {
-        var p = pos[i], d = deg[r.id] || 0;
-        var s = 4.5 + Math.min(3.5, d * 0.8) + (r.importance || 1) * 0.6;
-        var hs = (s * 0.72).toFixed(2);
-        return '<g class="nnode st-' + esc(r.status) + (d ? '' : ' lone') + '" data-id="' + esc(r.id) + '"' +
-          ' transform="translate(' + p.x.toFixed(1) + ',' + p.y.toFixed(1) + ')"' +
-          ' style="--tw:' + (5 + (i % 5)) + 's;--twd:-' + ((i * 1.7) % 8).toFixed(1) + 's">' +
-          '<circle r="' + (s + 10).toFixed(0) + '" fill="transparent"/>' +
-          '<rect class="core" x="-' + hs + '" y="-' + hs + '" width="' + (hs * 2) + '" height="' + (hs * 2) + '" transform="rotate(45)"/>' +
-          '<text y="' + (s + 13).toFixed(0) + '">' + esc(r.id) + '</text>' +
-          '</g>';
-      }).join('');
-      stage.style.width = S + 'px'; stage.style.height = S + 'px';
-      stage.innerHTML = '<svg class="netsvg' + (g.nodes.length > 45 ? ' many' : '') + '" viewBox="0 0 ' + S + ' ' + S + '" width="' + S + '" height="' + S + '" xmlns="http://www.w3.org/2000/svg">' + glow + rings + lines + nodesSvg + '</svg>';
-
-      /* 3Dジオラマ: カメラは2状態（斜め/真上ボタン）+左右スワイプ回転のみ。チルトのジェスチャー操作は廃止。
-         2本指=ピンチズーム+ひねり回転+移動、ホイール=ズーム、Shift/右ドラッグ=移動。
-         星タップ=カードの駒が3D空間に立つ（向きは置いた時のまま）→駒タップ=どの視点からでもカード正面へ飛ぶ */
-      var TILT_DIORAMA = 52, TILT_CARD = 76;
-      var minZoom = Math.min(1, availH / S * 0.95);
-      var tilt = TILT_DIORAMA, spin = 0, zoom = 1, panX = 0, panY = 0;
-      var rafId = 0, flightId = 0, tweenId = 0, topMode = false, pinSpin = 0;
-      var texts = [].slice.call(stage.querySelectorAll('.nnode text'));
-      var svgEl = stage.querySelector('svg');
-      var pinEl = null;
-      function applyT() {
-        var z = zoom.toFixed(3);
-        /* scale3d: Z（駒の高さ方向）も等倍で拡大しないと、接近時に駒の縦横比が壊れる */
-        stage.style.transform = 'translate(calc(-50% + ' + panX.toFixed(1) + 'px), calc(-50% + ' + panY.toFixed(1) + 'px)) ' +
-          'rotateX(' + tilt.toFixed(1) + 'deg) rotateZ(' + spin.toFixed(1) + 'deg) scale3d(' + z + ',' + z + ',' + z + ')';
-        var lt = 'rotate(' + (-spin).toFixed(1) + ') scale(' + (1 / Math.sqrt(zoom)).toFixed(3) + ')';
-        texts.forEach(function (t) { t.setAttribute('transform', lt); });
-        svgEl.classList.toggle('zoomed', zoom > 1.6);
-      }
-      applyT();
-
-      var sel = null;
-      function select(id) {
-        sel = id;
-        [].forEach.call(stage.querySelectorAll('.nnode'), function (el) {
-          var isSel = el.dataset.id === id;
-          var linked = !!(id && neighbors[id] && neighbors[id][el.dataset.id]);
-          el.classList.toggle('sel', isSel);
-          el.classList.toggle('lit', linked);
-          el.classList.toggle('dim', !!id && !isSel && !linked);
-        });
-        [].forEach.call(stage.querySelectorAll('.nlink'), function (el) {
-          var on = !!(id && (el.dataset.la === id || el.dataset.lb === id));
-          el.classList.toggle('lit', on);
-          el.classList.toggle('dim', !!id && !on);
-        });
-        if (pinEl && pinEl.parentNode) pinEl.parentNode.removeChild(pinEl);
-        pinEl = null;
-        if (id) {
-          var p = pos[idx[id]];
-          pinEl = document.createElement('div');
-          pinEl.id = 'net-pin';
-          pinEl.style.left = p.x.toFixed(1) + 'px';
-          pinEl.style.top = p.y.toFixed(1) + 'px';
-          /* 置いた瞬間にカメラの方を向いて立ち、以後は空間に固定（裏に回れば裏面が見える） */
-          pinSpin = spin;
-          pinEl.style.transform = 'rotateZ(' + (-spin).toFixed(1) + 'deg) rotateX(-90deg)';
-          pinEl.innerHTML = '<div class="pincard">' +
-            '<div class="cface">' + cardFaceHTML(g.nodes[idx[id]]) + '</div>' +
-            '<div class="cface backface"><div class="cback">' +
-              '<i class="cc tl"></i><i class="cc tr"></i><i class="cc bl"></i><i class="cc br"></i>' +
-              '<div class="cbem">◆</div>' +
-              '<div class="cbt">KNOWLEDGE<br>CODEX</div>' +
-            '</div></div>' +
-            '</div>';
-          stage.appendChild(pinEl);
-          hydrateCardImgs(pinEl);
-        }
-      }
-      /* 汎用カメラ補間（真上⇔斜めの切替に使用） */
-      function tween(to, dur) {
-        if (tweenId) cancelAnimationFrame(tweenId);
-        var from = { tilt: tilt, zoom: zoom, spin: spin, panX: panX, panY: panY };
-        if (to.spin != null) {
-          var ds = (to.spin - spin) % 360;
-          if (ds > 180) ds -= 360;
-          if (ds < -180) ds += 360;
-          to.spin = spin + ds;
-        }
-        var t0 = null;
-        function fr(ts) {
-          if (!document.body.contains(stage)) { tweenId = 0; return; }
-          if (t0 === null) t0 = ts;
-          var u = Math.min(1, (ts - t0) / dur), e = u * u * (3 - 2 * u);
-          if (to.tilt != null) tilt = from.tilt + (to.tilt - from.tilt) * e;
-          if (to.zoom != null) zoom = from.zoom + (to.zoom - from.zoom) * e;
-          if (to.spin != null) spin = from.spin + (to.spin - from.spin) * e;
-          if (to.panX != null) panX = from.panX + (to.panX - from.panX) * e;
-          if (to.panY != null) panY = from.panY + (to.panY - from.panY) * e;
-          applyT();
-          tweenId = u < 1 ? requestAnimationFrame(fr) : 0;
-        }
-        tweenId = requestAnimationFrame(fr);
-      }
-      /* カメラ接近: どの視点からでもカードの正面へ（回転・角度・ズームを同時補間しつつ星を中央へ） */
-      function flyToPin() {
-        var nEl = stage.querySelector('.nnode.sel');
-        if (!nEl) return;
-        if (flightId) cancelAnimationFrame(flightId);
-        if (tweenId) { cancelAnimationFrame(tweenId); tweenId = 0; }
-        topMode = false;
-        $('#net-top', v).textContent = '◎ 真上';
-        var z0 = zoom, zT = 2.8, t0 = null;
-        var s0 = spin, sT = pinSpin, dsp = (sT - s0) % 360;
-        if (dsp > 180) dsp -= 360;
-        if (dsp < -180) dsp += 360;
-        var ti0 = tilt, tiT = TILT_CARD;
-        var desY = Math.min(availH * 0.3, 130);
-        beep('open');
-        function fr(ts) {
-          if (!document.body.contains(stage)) { flightId = 0; return; }
-          if (t0 === null) t0 = ts;
-          var u = Math.min(1, (ts - t0) / 850), e = u * u * (3 - 2 * u);
-          spin = s0 + dsp * e;
-          tilt = ti0 + (tiT - ti0) * e;
-          var nb = nEl.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
-          var sx = nb.left + nb.width / 2 - wb.left - wb.width / 2;
-          var sy = nb.top + nb.height / 2 - wb.top - wb.height / 2;
-          var zNow = z0 + (zT - z0) * e, k = zNow / zoom;
-          panX = sx * (1 - k) + k * panX;
-          panY = sy * (1 - k) + k * panY;
-          zoom = zNow;
-          panX += (0 - sx) * 0.16;
-          panY += (desY - sy) * 0.16;
-          applyT();
-          flightId = u < 1 ? requestAnimationFrame(fr) : 0;
-          if (!flightId) clampPan();
-        }
-        flightId = requestAnimationFrame(fr);
-      }
-      function pinFocused() {
-        var nEl = stage.querySelector('.nnode.sel');
-        if (!nEl || zoom < 2.2) return false;
-        var nb = nEl.getBoundingClientRect(), wb = wrap.getBoundingClientRect();
-        var sx = nb.left + nb.width / 2 - wb.left - wb.width / 2;
-        var sy = nb.top + nb.height / 2 - wb.top - wb.height / 2 - Math.min(availH * 0.3, 130);
-        return Math.abs(sx) < 70 && Math.abs(sy) < 70;
-      }
-
-      var pts = {}, ptCount = 0, down = null, moved = false, hitNode = null, hitPin = false;
-      var lastDX = 0, lastDY = 0, svel = 0, prev2 = null;
-      function clampPan() {
-        var lim = S * zoom * 0.55;
-        panX = Math.max(-lim, Math.min(lim, panX));
-        panY = Math.max(-lim, Math.min(lim, panY));
-      }
-      function zoomAt(k, qx, qy) {
-        var z2 = Math.max(minZoom, Math.min(3.5, zoom * k));
-        k = z2 / zoom;
-        panX = qx * (1 - k) + k * panX;
-        panY = qy * (1 - k) + k * panY;
-        zoom = z2; clampPan();
-      }
-      function glide() {
-        svel *= 0.94; spin += svel; applyT();
-        rafId = (Math.abs(svel) > 0.05 && document.body.contains(stage)) ? requestAnimationFrame(glide) : 0;
-      }
-      function pair() {
-        var ids = Object.keys(pts);
-        var a = pts[ids[0]], b = pts[ids[1]];
-        return {
-          d: Math.max(20, Math.hypot(b.x - a.x, b.y - a.y)),
-          ang: Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI,
-          mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2
-        };
-      }
-      wrap.addEventListener('pointerdown', function (e) {
-        if (e.target.closest('#net-top')) return;
-        pts[e.pointerId] = { x: e.clientX, y: e.clientY }; ptCount++;
-        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
-        if (flightId) { cancelAnimationFrame(flightId); flightId = 0; clampPan(); }
-        if (tweenId) { cancelAnimationFrame(tweenId); tweenId = 0; }
-        if (ptCount === 1) {
-          down = { x: e.clientX, y: e.clientY, t: Date.now() };
-          moved = false; lastDX = 0; lastDY = 0; svel = 0;
-          hitPin = !!e.target.closest('#net-pin');
-          hitNode = e.target.closest('.nnode');
-        } else { moved = true; prev2 = ptCount === 2 ? pair() : null; }
-        try { wrap.setPointerCapture(e.pointerId); } catch (err) {}
-      });
-      wrap.addEventListener('pointermove', function (e) {
-        var p = pts[e.pointerId];
-        if (!p) return;
-        var dx = e.clientX - p.x, dy = e.clientY - p.y;
-        p.x = e.clientX; p.y = e.clientY;
-        if (ptCount >= 2 && prev2) {
-          var cur = pair(), wb = wrap.getBoundingClientRect();
-          zoomAt(cur.d / prev2.d, cur.mx - wb.left - wb.width / 2, cur.my - wb.top - wb.height / 2);
-          var da = cur.ang - prev2.ang;
-          if (da > 180) da -= 360;
-          if (da < -180) da += 360;
-          spin += da;
-          panX += cur.mx - prev2.mx; panY += cur.my - prev2.my;
-          clampPan(); prev2 = cur; applyT();
-          return;
-        }
-        if (!down) return;
-        if (Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y) > 9) moved = true;
-        if (!moved) return;
-        if (e.shiftKey || (e.buttons & 2)) {
-          panX += dx; panY += dy; clampPan();
-        } else {
-          /* 手前を掴んで回す向き: 右スワイプ=手前が右へ動く=反時計回り */
-          spin -= dx * 0.35;
-          /* 上下=見下ろし角。26°〜72°の安全域のみ（真上0°へはボタンで。26°未満からは上げる方向のみ許可） */
-          var tn = tilt + dy * 0.2;
-          if (tn > 72) tn = 72;
-          if (tn < 26) tn = (tilt <= 26) ? Math.max(tn, tilt) : 26;
-          if (topMode && tn > tilt + 0.01) { topMode = false; $('#net-top', v).textContent = '◎ 真上'; }
-          tilt = tn;
-          lastDX = dx;
-        }
-        applyT();
-      });
-      wrap.addEventListener('pointerup', function (e) {
-        if (!pts[e.pointerId]) return;
-        delete pts[e.pointerId]; ptCount--;
-        prev2 = null;
-        if (ptCount <= 0) { ptCount = 0; pts = {}; } /* 幽霊ポインタ対策 */
-        if (ptCount > 0) return;
-        if (!down) return;
-        var wasTap = !moved && Date.now() - down.t < 500;
-        down = null;
-        if (wasTap) {
-          if (hitPin || (hitNode && sel && hitNode.dataset.id === sel)) {
-            /* 駒タップ: 接近済みなら詳細へ、遠ければカメラ接近 */
-            if (pinFocused()) { location.hash = '#/detail/' + sel; return; }
-            flyToPin();
-            return;
-          }
-          if (hitNode) {
-            beep('tap');
-            select(hitNode.dataset.id);
-          } else if (sel) select(null);
-          return;
-        }
-        svel = Math.max(-12, Math.min(12, -lastDX * 0.45));
-        if (Math.abs(svel) > 0.3) { beep('spin'); glide(); }
-      });
-      wrap.addEventListener('pointercancel', function (e) {
-        if (pts[e.pointerId]) { delete pts[e.pointerId]; ptCount = Math.max(0, ptCount - 1); }
-        if (ptCount <= 0) { ptCount = 0; pts = {}; }
-        down = null; prev2 = null;
-      });
-      $('#net-top', v).addEventListener('click', function () {
-        beep('tap');
-        if (!topMode) {
-          topMode = true;
-          this.textContent = '◈ 斜め';
-          tween({ tilt: 0, zoom: minZoom, panX: 0, panY: 0 }, 600);
-        } else {
-          topMode = false;
-          this.textContent = '◎ 真上';
-          tween({ tilt: TILT_DIORAMA, zoom: 1, panX: 0, panY: 0 }, 600);
-        }
-      });
-      wrap.addEventListener('wheel', function (e) {
-        e.preventDefault();
-        var wb = wrap.getBoundingClientRect();
-        zoomAt(Math.exp(-e.deltaY * 0.0016), e.clientX - wb.left - wb.width / 2, e.clientY - wb.top - wb.height / 2);
-        applyT();
-      }, { passive: false });
-      wrap.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-    });
-  };
-}
-
 /* ---------- card collection ---------- */
 function dots(n, max) {
   n = Math.max(0, Math.min(max, n || 0));
@@ -2616,7 +2176,6 @@ function route() {
   if (h.indexOf('#/cards') === 0) { viewCards(parseQuery(h))(); return; }
   if ((m = h.match(/^#\/card\/([A-Za-z]+-\d+)/))) { viewCard(m[1])(); return; }
   if (h.indexOf('#/terms') === 0) { viewTerms(parseQuery(h))(); return; }
-  if (h.indexOf('#/network') === 0) { viewNetwork()(); return; }
   if (h.indexOf('#/settings') === 0) { viewSettings()(); return; }
   closeView(); renderHome();
 }
