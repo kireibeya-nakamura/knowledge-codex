@@ -351,3 +351,14 @@ This skill holds the *judgment*. Keep the three consistent.
   fix a material problem; (2) when the director lacks the sense being judged (audio), switch from
   "generate and hope" to "curate from professionally-made CC0 material and let the author's ear pick";
   (3) sound assignments are one-line swaps now — taste iteration became cheap, which is the real win.
+- **2026-07-12 (lookdev-1 → v25) — New look direction: circuit-board world layer.** Author brought a
+  sci-fi shop UI reference and demanded the fine PCB-trace background be reproduced faithfully ("単な
+  る装飾ではなく世界観の主要素"). Method decision: **seeded generator → SVG** (45° trace jogs on an
+  8px grid, 2–4-line parallel bundles, three pad types, SMD dash blocks, thick bus lines, density
+  falloff = dense edges / calm center). CSS gradients rejected (cannot draw branching), raster
+  rejected (rights + DPR blur), canvas = runner-up (2nd canvas cost + zoom blur). Process win: a
+  standalone `lookdev.html` mock with a BLUE/TEAL toggle let the author judge the aesthetic on the
+  phone before touching the app — **author approved the design and chose BLUE (teal stays banned)**.
+  Application is staged: v25 background layer first (opacity 0.75 behind particles), panel corner-cut
+  frames next. Also learned: a lookdev mock needs its dead buttons labeled or a working exit — the
+  author read it as the app and got "stuck".
