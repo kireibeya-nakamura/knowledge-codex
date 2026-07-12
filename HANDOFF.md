@@ -46,8 +46,9 @@ IndexedDB `knowledge-codex` v2: `records`（知識）+ `files`（画像blob、ca
 
 ## 7. 次の候補（未着手）
 1. **APIキー設定→実キーでAI整理の実地確認**（保留中、最優先候補）
-2. **Phase 4: 関連知識ネットワーク**（ai.relatedIds を星図表示。ビジュアルの目玉）
-3. **UE版ビューア**（エクスポートJSONを読む閲覧専用3Dデモ、ポートフォリオ用）
+2. **UE版ビューア**（エクスポートJSONを読む閲覧専用3Dデモ、ポートフォリオ用）
+- ~~関連知識ネットワーク~~: v15-21で星図として実装→操作感が合わずv22で撤去。再挑戦するなら平面から（design-director/SKILL.mdのログ参照）
+- 作者の宿題: 効果音の差し替え選定（`sounds/*.wav`、Kenney Interface Sounds全100音から。割当はsounds/LICENSE.txt）
 
 ## 8. 引き継ぎ時の注意
 - 変更は小さく刻み、毎回CHANGELOGに書き、実機確認を挟む（作者の好み）
