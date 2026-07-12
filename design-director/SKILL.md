@@ -383,3 +383,12 @@ This skill holds the *judgment*. Keep the three consistent.
   just noise. Overlay now .6 so the home ghosts through work screens like the reference's dimmed
   shop grid. Feedback loop note: the author can send phone screenshots and the director CAN compare
   images — use that loop for visual fidelity work instead of guessing.
+- **2026-07-12 (v28)** — Author: "全体的に白っぽい". Root cause of the milkiness: in the clip-path
+  frame technique the frame-color layer fills the WHOLE polygon underneath the fill — so any
+  translucency in the fill reveals the bright frame color, not the world behind. **Rule: with this
+  technique the interior fill must stay near-opaque; "transparency" is faked by color depth, and the
+  frame color should be a saturated blue (#6d9cf5), never a near-white (#a8d4ff).** Also: corner-cut
+  panels need header padding-left ≥ cut size (title was riding the TL diagonal). Cards joined the
+  circuit look (same two-layer frame, 11/5px cuts, cc brackets fully deleted); landscape's faded
+  variant now just overrides --frame/--frame-dim per scope — CSS-var scoping is the clean way to
+  theme a framed component's intensity.

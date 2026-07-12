@@ -19,8 +19,8 @@
     --amber: #ffd98a;
     --green: #9fe6b8;
     --mono: Consolas, "Courier New", monospace;
-    --frame: #a8d4ff;
-    --frame-dim: rgba(58,118,255,0.55);
+    --frame: #6d9cf5;
+    --frame-dim: rgba(58,118,255,0.5);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
@@ -110,7 +110,7 @@
     );
     background:
       repeating-linear-gradient(0deg, rgba(122,160,255,0.028) 0 1px, transparent 1px 3px),
-      linear-gradient(168deg, rgba(12,22,48,0.9), rgba(5,10,24,0.93));
+      linear-gradient(168deg, rgba(10,19,42,0.97), rgba(4,8,20,0.985));
   }
   .panel > * { position: relative; z-index: 1; }
   .panel:hover, .panel:active { filter: drop-shadow(0 0 22px rgba(122,160,255,0.5)); }
@@ -118,7 +118,7 @@
   .p-head {
     display: flex; align-items: center; gap: 8px;
     font-family: var(--mono); font-size: 11px; letter-spacing: 2px; color: var(--cyan);
-    padding: 10px 12px 8px;
+    padding: 10px 12px 8px 24px; /* 左は角欠き（--cutL）と干渉しない余白 */
     border-bottom: 1px solid rgba(58,110,255,0.35);
     background: linear-gradient(90deg, rgba(58,110,255,0.14), transparent 70%);
   }
@@ -163,7 +163,7 @@
   .kcard:hover { border-color: var(--cyan); background: rgba(15, 32, 70, 0.85); }
   .kcard .thumb {
     flex: 0 0 52px; height: 52px; align-self: center;
-    border: 1px solid rgba(58,110,255,0.5); border-radius: 4px;
+    border: 1px solid rgba(58,110,255,0.5); border-radius: 0;
     background:
       linear-gradient(135deg, transparent 42%, rgba(58,110,255,0.35) 43%, transparent 44%),
       linear-gradient(135deg, transparent 56%, rgba(58,110,255,0.25) 57%, transparent 58%),
@@ -247,14 +247,14 @@
     );
     background:
       repeating-linear-gradient(0deg, rgba(122,160,255,0.02) 0 1px, transparent 1px 3px),
-      linear-gradient(168deg, rgba(10,19,40,0.93), rgba(4,8,19,0.96));
+      linear-gradient(168deg, rgba(9,17,38,0.975), rgba(4,8,19,0.99));
   }
   .vpanel > * { position: relative; z-index: 1; }
   @keyframes viewIn { from { opacity: 0; transform: scale(0.965) translateY(8px); } to { opacity: 1; transform: none; } }
   .vhead {
     display: flex; align-items: center; gap: 10px;
     font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--cyan);
-    padding: 12px 14px;
+    padding: 12px 14px 12px 32px; /* 左は角欠き（--cutL:25px）と干渉しない余白 */
     border-bottom: 1px solid rgba(58,110,255,0.35);
     background: linear-gradient(90deg, rgba(58,110,255,0.14), transparent 70%);
   }
@@ -378,7 +378,7 @@
 
   .attgrid { display: flex; flex-wrap: wrap; gap: 8px; }
   .attgrid .att {
-    position: relative; width: 84px; height: 84px; border: 1px solid rgba(58,110,255,0.5); border-radius: 4px;
+    position: relative; width: 84px; height: 84px; border: 1px solid rgba(58,110,255,0.5); border-radius: 0;
     overflow: hidden; cursor: pointer; background: rgba(6,13,34,0.8);
   }
   .attgrid .att img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -393,7 +393,7 @@
     position: fixed; inset: 0; z-index: 60; background: rgba(3,7,17,0.92);
     display: flex; align-items: center; justify-content: center; cursor: zoom-out;
   }
-  .lightbox img { max-width: 94vw; max-height: 92vh; border: 1px solid var(--line-bright); border-radius: 4px; box-shadow: 0 0 40px rgba(58,110,255,0.4); }
+  .lightbox img { max-width: 94vw; max-height: 92vh; border: 1px solid var(--line-bright); border-radius: 0; box-shadow: 0 0 40px rgba(58,110,255,0.4); }
 
   .gterm { border: 1px solid rgba(58,110,255,0.25); border-radius: 0; padding: 10px 12px; margin-bottom: 10px; }
   .gterm .gname { color: var(--cyan); font-weight: 700; font-size: 14px; }
@@ -402,23 +402,31 @@
   .gterm .gsrc .tag { cursor: pointer; }
   .gterm .gsrc .tag:hover { color: var(--cyan); border-color: var(--cyan); }
 
+  /* カードも基盤ルック: パネルと同じ角欠き二重構造（v28） */
   .ccard {
     position: relative; width: 100%; aspect-ratio: 63/88;
     display: flex; flex-direction: column;
-    background: linear-gradient(165deg, rgba(12,26,60,0.95), rgba(5,10,30,0.97));
-    border: 1px solid var(--line-bright); border-radius: 4px;
-    box-shadow: 0 0 16px rgba(58,110,255,0.25), inset 0 0 34px rgba(58,110,255,0.06);
-    overflow: hidden;
+    --cutL: 11px; --cut: 5px;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
+    filter: drop-shadow(0 0 8px rgba(58,110,255,0.22));
   }
   .ccard::after {
-    content: ""; position: absolute; inset: 0; border-radius: 4px; pointer-events: none;
-    background: repeating-linear-gradient(0deg, rgba(122,160,255,0.03) 0 1px, transparent 1px 3px);
+    content: ""; position: absolute; inset: 1px; z-index: 0; pointer-events: none;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background:
+      repeating-linear-gradient(0deg, rgba(122,160,255,0.03) 0 1px, transparent 1px 3px),
+      linear-gradient(165deg, rgba(12,26,60,0.97), rgba(5,10,30,0.985));
   }
-  .ccard .cc { position: absolute; width: 12px; height: 12px; z-index: 2; }
-  .ccard .cc.tl { top: 3px; left: 3px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-  .ccard .cc.tr { top: 3px; right: 3px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
-  .ccard .cc.bl { bottom: 3px; left: 3px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-  .ccard .cc.br { bottom: 3px; right: 3px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+  .ccard > * { position: relative; z-index: 1; }
   .ccard .chead {
     display: flex; align-items: center; padding: 8px 10px 6px;
     font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--cyan-dim);
@@ -427,7 +435,7 @@
   .ccard .chead .chip { font-size: 9px; padding: 1px 6px; }
   .ccard .cimg {
     margin: 8px 10px 0; aspect-ratio: 16/10; flex: none;
-    border: 1px solid rgba(58,110,255,0.45); border-radius: 4px; overflow: hidden;
+    border: 1px solid rgba(58,110,255,0.45); border-radius: 0; overflow: hidden;
     display: flex; align-items: center; justify-content: center;
     background:
       radial-gradient(circle at 50% 40%, rgba(58,110,255,0.18), transparent 70%),
@@ -452,7 +460,7 @@
   .booknav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
   .bookpages {
     display: grid; grid-template-columns: 1fr 1fr;
-    background: rgba(5,10,30,0.5); border: 1px solid var(--line); border-radius: 4px;
+    background: rgba(5,10,30,0.5); border: 1px solid var(--line); border-radius: 0;
     perspective: 1200px;
   }
   .bookpages.single { grid-template-columns: 1fr; }
@@ -466,7 +474,7 @@
   .bcard:hover { transform: translateY(-3px) scale(1.02); }
   .bempty {
     width: 100%; aspect-ratio: 63/88;
-    border: 1px dashed rgba(58,110,255,0.25); border-radius: 4px;
+    border: 1px dashed rgba(58,110,255,0.25); border-radius: 0;
     display: flex; align-items: center; justify-content: center;
     font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: rgba(77,125,156,0.55);
   }
@@ -486,13 +494,28 @@
   .cface .ccard { height: 100%; }
   .cback {
     width: 100%; height: 100%; position: relative;
-    border: 1px solid var(--line-bright); border-radius: 4px;
+    --cutL: 11px; --cut: 5px;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
+    filter: drop-shadow(0 0 8px rgba(58,110,255,0.2));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  }
+  .cback::before {
+    content: ""; position: absolute; inset: 1px; z-index: 0; pointer-events: none;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
     background:
       repeating-linear-gradient(45deg, rgba(58,110,255,0.05) 0 2px, transparent 2px 14px),
       linear-gradient(160deg, #0a1636, #05081a);
-    box-shadow: 0 0 18px rgba(58,110,255,0.3), inset 0 0 40px rgba(58,110,255,0.08);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   }
+  .cback > * { position: relative; z-index: 1; }
   .cback .cbem { font-size: 46px; color: var(--cyan); text-shadow: 0 0 20px rgba(122,160,255,0.8); }
   .cback .cbt { font-family: var(--mono); letter-spacing: 4px; color: var(--cyan-dim); font-size: 14px; text-align: center; line-height: 1.7; }
   .cback .cbs { font-family: var(--mono); font-size: 8px; letter-spacing: 2px; color: var(--muted); }
@@ -515,12 +538,6 @@
     91% { opacity: 0.75; top: 68%; }
     93% { opacity: 0.4; top: 90%; }
     94%, 100% { opacity: 0; top: 106%; }
-  }
-  .ccard::after { animation: holoFlicker 9s steps(1) infinite; animation-delay: 1.4s; }
-  @keyframes holoFlicker {
-    0%, 90.6%, 91.6%, 93%, 100% { opacity: 1; }
-    91% { opacity: 0.45; }
-    92.4% { opacity: 0.75; }
   }
 
   #toast {
@@ -545,8 +562,7 @@
     .bpage { flex-direction: row; justify-content: center; padding: 10px 6px; gap: 8px; }
     .bslot { width: calc((100vh - 255px) * 0.716); width: calc((100dvh - 255px) * 0.716); min-width: 72px; }
     .bpage .ccard .cone, .bpage .ccard .cstats, .bpage .ccard .cfoot, .bpage .ccard .chead .chip { display: none; }
-    .bpage .ccard { border-color: rgba(58,110,255,0.45); box-shadow: 0 0 8px rgba(58,110,255,0.14), inset 0 0 14px rgba(58,110,255,0.03); }
-    .bpage .ccard .cc { width: 7px; height: 7px; border-width: 1px; }
+    .bpage .ccard { --frame: rgba(122,168,255,0.5); --frame-dim: rgba(58,118,255,0.28); filter: drop-shadow(0 0 5px rgba(58,110,255,0.12)); }
     .bpage .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; border-bottom-color: rgba(58,110,255,0.18); }
     .bpage .ccard .cimg { margin: 5px 7px 0; border-color: rgba(58,110,255,0.28); }
     .bpage .ccard .cbody { padding: 6px 7px 5px; }
@@ -1960,7 +1976,7 @@ function cardFaceHTML(r) {
     ? '<img data-cimg="' + esc(r.attachments[0]) + '" alt="">'
     : '<span class="glyph">' + (TYPE_CODE[r.type] || 'REC') + '</span>';
   return '<div class="ccard">' +
-    '<i class="cc tl"></i><i class="cc tr"></i><i class="cc bl"></i><i class="cc br"></i>' +
+    '' +
     '<div class="chead"><span>' + esc(r.id) + '</span><span class="chip ' + esc(r.status) + '" style="margin-left:auto;">' + (STATUS[r.status] || r.status) + '</span></div>' +
     '<div class="cimg">' + img + '</div>' +
     '<div class="cbody">' +
@@ -2062,7 +2078,7 @@ function viewCard(id) {
         '<div class="cstage" id="cstage"><div class="cobj" id="cobj">' +
           '<div class="cface">' + cardFaceHTML(r) + '</div>' +
           '<div class="cface backface"><div class="cback">' +
-            '<i class="cc tl"></i><i class="cc tr"></i><i class="cc bl"></i><i class="cc br"></i>' +
+            '' +
             '<div class="cbem">◆</div>' +
             '<div class="cbt">KNOWLEDGE<br>CODEX</div>' +
             '<div class="cbs">PERSONAL KNOWLEDGE ARCHIVE</div>' +
