@@ -372,3 +372,14 @@ This skill holds the *judgment*. Keep the three consistent.
   them). Controls went 3px→0. Panel interiors became near-opaque (reference-accurate; the circuit
   shows AROUND panels, not through them — readability won too). Panel holoFlicker was cut: flickering
   the fill layer flashes the frame gradient through the interior.
+- **2026-07-12 (v27) — Pattern fidelity round: measure, don't eyeball.** Author rejected v25/26's
+  pattern ("線が太く参考画像に近くない" + "搭載されていない"). Three real causes: (1) trace width was
+  1px vs the reference's measured ~0.5px-at-phone-scale hairlines — when matching a reference,
+  MEASURE the line weight against image resolution instead of defaulting to 1px; (2) parallel
+  bundles are the motif's protagonist (2–6 tight lines at 4px pitch, half of all runs), not an
+  occasional garnish; (3) the work-screen dim layer (rgba .8) was erasing the world layer — a
+  world-building background must be audited on every screen state, not just home. Also added corner
+  L-motifs (structured double-L + tick rows at screen corners) — references have *architecture*, not
+  just noise. Overlay now .6 so the home ghosts through work screens like the reference's dimmed
+  shop grid. Feedback loop note: the author can send phone screenshots and the director CAN compare
+  images — use that loop for visual fidelity work instead of guessing.

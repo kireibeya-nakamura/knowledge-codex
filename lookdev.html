@@ -265,83 +265,88 @@ function mulberry32(a) {
 }
 function genCircuit(W, H, seed) {
   var rnd = mulberry32(seed);
-  var G = 8; /* 8pxグリッドに沿って配線 */
+  var G = 6;
   var out = [];
   function snap(v) { return Math.round(v / G) * G; }
-  /* 密度: 中央(パネル領域)は疎、縁ほど密。max(dx,dy)の矩形距離で参照画像のリズムに寄せる */
   function density(x, y) {
     var dx = Math.abs(x - W / 2) / (W / 2);
     var dy = Math.abs(y - H / 2) / (H / 2);
     var d = Math.max(dx, dy);
-    return 0.10 + 0.9 * d * d;
+    return 0.16 + 0.84 * d * d;
   }
-  /* --- トレース（束あり） --- */
-  var nTr = Math.round(W * H / 8500);
+  var nTr = Math.round(W * H / 5200);
   for (var i = 0; i < nTr; i++) {
     var x0 = snap(rnd() * W), y0 = snap(rnd() * H);
     if (rnd() > density(x0, y0)) continue;
-    var bundle = rnd() < 0.3 ? 2 + Math.floor(rnd() * 3) : 1;
+    var bundle = rnd() < 0.5 ? 2 + Math.floor(rnd() * 5) : 1;
     var dir = rnd() < 0.5 ? 1 : -1;
-    var segs = 2 + Math.floor(rnd() * 4);
+    var segs = 3 + Math.floor(rnd() * 5);
     var pts = [[x0, y0]];
     var x = x0, y = y0;
     for (var s = 0; s < segs; s++) {
-      x += dir * G * (3 + Math.floor(rnd() * 15));
+      x += dir * G * (4 + Math.floor(rnd() * 19));
       pts.push([x, y]);
-      if (s < segs - 1 && rnd() < 0.72) { /* 45°の折れ */
-        var v = G * (1 + Math.floor(rnd() * 4));
+      if (s < segs - 1 && rnd() < 0.66) {
+        var v = G * (1 + Math.floor(rnd() * 3));
         var vd = rnd() < 0.5 ? 1 : -1;
         x += dir * v; y += vd * v;
         pts.push([x, y]);
       }
     }
-    var hi = rnd() < 0.045; /* まれに明るい強調トレース */
-    var op = hi ? 0.5 : 0.09 + rnd() * 0.13;
+    var hi = rnd() < 0.03;
+    var op = hi ? 0.55 : 0.13 + rnd() * 0.17;
     for (var b = 0; b < bundle; b++) {
-      var off = b * 6;
+      var off = b * 4;
       var d2 = '';
-      for (var p = 0; p < pts.length; p++) {
-        d2 += (p ? 'L' : 'M') + pts[p][0] + ',' + (pts[p][1] + off);
-      }
-      out.push('<path class="' + (hi ? 'trhi' : 'tr') + '" d="' + d2 + '" stroke-width="1" opacity="' + op.toFixed(2) + '"/>');
-      /* 終端パッド */
-      if (rnd() < 0.75) {
+      for (var p = 0; p < pts.length; p++) d2 += (p ? 'L' : 'M') + pts[p][0] + ',' + (pts[p][1] + off);
+      out.push('<path class="' + (hi ? 'trhi' : 'tr') + '" d="' + d2 + '" stroke-width="' + (hi ? 0.8 : 0.6) + '" opacity="' + op.toFixed(2) + '"/>');
+      if (rnd() < 0.7) {
         var ex = pts[pts.length - 1][0], ey = pts[pts.length - 1][1] + off;
         var kind = rnd();
-        if (kind < 0.4) out.push('<circle class="padf" cx="' + ex + '" cy="' + ey + '" r="1.8" opacity="' + Math.min(0.55, op + 0.15).toFixed(2) + '"/>');
-        else if (kind < 0.75) out.push('<circle class="pado" cx="' + ex + '" cy="' + ey + '" r="3" stroke-width="1" opacity="' + Math.min(0.5, op + 0.1).toFixed(2) + '"/>');
-        else out.push('<circle class="pado" cx="' + ex + '" cy="' + ey + '" r="4.2" stroke-width="1" opacity="' + op.toFixed(2) + '"/><circle class="padf" cx="' + ex + '" cy="' + ey + '" r="1.4" opacity="' + Math.min(0.55, op + 0.15).toFixed(2) + '"/>');
+        if (kind < 0.42) out.push('<circle class="padf" cx="' + ex + '" cy="' + ey + '" r="1.2" opacity="' + Math.min(0.6, op + 0.18).toFixed(2) + '"/>');
+        else if (kind < 0.78) out.push('<circle class="pado" cx="' + ex + '" cy="' + ey + '" r="2.2" stroke-width="0.7" opacity="' + Math.min(0.55, op + 0.12).toFixed(2) + '"/>');
+        else out.push('<circle class="pado" cx="' + ex + '" cy="' + ey + '" r="3" stroke-width="0.7" opacity="' + op.toFixed(2) + '"/><circle class="padf" cx="' + ex + '" cy="' + ey + '" r="1" opacity="' + Math.min(0.6, op + 0.18).toFixed(2) + '"/>');
       }
-      if (b === 0 && rnd() < 0.4) {
-        out.push('<circle class="padf" cx="' + pts[0][0] + '" cy="' + (pts[0][1] + off) + '" r="1.8" opacity="' + op.toFixed(2) + '"/>');
-      }
+      if (b === 0 && rnd() < 0.4) out.push('<circle class="padf" cx="' + pts[0][0] + '" cy="' + (pts[0][1] + off) + '" r="1.2" opacity="' + op.toFixed(2) + '"/>');
     }
   }
-  /* --- 太いバス線 --- */
-  var nBus = Math.max(3, Math.round(nTr * 0.05));
+  var nBus = Math.max(4, Math.round(nTr * 0.045));
   for (i = 0; i < nBus; i++) {
     var bx = snap(rnd() * W), by = snap(rnd() * H);
     if (rnd() > density(bx, by)) continue;
     var bdir = rnd() < 0.5 ? 1 : -1;
-    var bl = G * (10 + Math.floor(rnd() * 25));
+    var bl = G * (12 + Math.floor(rnd() * 30));
     var jog = G * (2 + Math.floor(rnd() * 4));
     var jd = rnd() < 0.5 ? 1 : -1;
     var d3 = 'M' + bx + ',' + by + 'L' + (bx + bdir * bl) + ',' + by +
       'L' + (bx + bdir * (bl + jog)) + ',' + (by + jd * jog) +
-      'L' + (bx + bdir * (bl + jog + G * (4 + Math.floor(rnd() * 10)))) + ',' + (by + jd * jog);
-    out.push('<path class="tr" d="' + d3 + '" stroke-width="2.5" opacity="' + (0.16 + rnd() * 0.1).toFixed(2) + '"/>');
+      'L' + (bx + bdir * (bl + jog + G * (5 + Math.floor(rnd() * 12)))) + ',' + (by + jd * jog);
+    out.push('<path class="tr" d="' + d3 + '" stroke-width="1.4" opacity="' + (0.2 + rnd() * 0.12).toFixed(2) + '"/>');
   }
-  /* --- SMDパッド列（短冊ブロック） --- */
-  var nBlk = Math.max(4, Math.round(W * H / 180000));
+  var nBlk = Math.max(5, Math.round(W * H / 150000));
   for (i = 0; i < nBlk * 3; i++) {
     var kx = snap(rnd() * W), ky = snap(rnd() * H);
     if (rnd() > density(kx, ky) * 0.9) continue;
-    var cnt = 4 + Math.floor(rnd() * 6);
-    var bop = (0.16 + rnd() * 0.14).toFixed(2);
-    for (var c = 0; c < cnt; c++) {
-      out.push('<rect class="padf" x="' + (kx + c * 7) + '" y="' + ky + '" width="3" height="9" opacity="' + bop + '"/>');
-    }
-    if (rnd() < 0.5) out.push('<path class="tr" d="M' + (kx - G * 4) + ',' + (ky + 4) + 'L' + kx + ',' + (ky + 4) + '" stroke-width="1" opacity="' + bop + '"/>');
+    var cnt = 5 + Math.floor(rnd() * 7);
+    var bop = (0.18 + rnd() * 0.14).toFixed(2);
+    for (var c = 0; c < cnt; c++) out.push('<rect class="padf" x="' + (kx + c * 5) + '" y="' + ky + '" width="2" height="6" opacity="' + bop + '"/>');
+    if (rnd() < 0.5) out.push('<path class="tr" d="M' + (kx - G * 4) + ',' + (ky + 3) + 'L' + kx + ',' + (ky + 3) + '" stroke-width="0.6" opacity="' + bop + '"/>');
+  }
+  /* コーナーモチーフ: 四隅+ランダム数カ所にL字二重線+チック */
+  var m = 14;
+  var cors = [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]];
+  var nExtra = 3 + Math.floor(rnd() * 4);
+  for (i = 0; i < nExtra; i++) {
+    var rx = snap(rnd() * W), ry = snap(rnd() * (H * 0.25)) + (rnd() < 0.5 ? 0 : Math.round(H * 0.75));
+    cors.push([rx, ry, rnd() < 0.5 ? 1 : -1, rnd() < 0.5 ? 1 : -1]);
+  }
+  for (i = 0; i < cors.length; i++) {
+    var cxx = cors[i][0], cyy = cors[i][1], hx = cors[i][2], hy = cors[i][3];
+    var L1 = G * (8 + Math.floor(rnd() * 8)), L2 = G * (5 + Math.floor(rnd() * 5));
+    var cop = (0.28 + rnd() * 0.14).toFixed(2);
+    out.push('<path class="tr" d="M' + (cxx + hx * L1) + ',' + cyy + 'L' + cxx + ',' + cyy + 'L' + cxx + ',' + (cyy + hy * L2) + '" stroke-width="0.9" opacity="' + cop + '"/>');
+    out.push('<path class="tr" d="M' + (cxx + hx * (L1 * 0.7)) + ',' + (cyy + hy * 4) + 'L' + (cxx + hx * 4) + ',' + (cyy + hy * 4) + 'L' + (cxx + hx * 4) + ',' + (cyy + hy * (L2 * 0.7)) + '" stroke-width="0.6" opacity="' + cop + '"/>');
+    for (var t = 0; t < 4; t++) out.push('<rect class="padf" x="' + (cxx + hx * (10 + t * 6) - 1) + '" y="' + (cyy + hy * 8 - (hy > 0 ? 0 : 3)) + '" width="2" height="3" opacity="' + cop + '"/>');
   }
   return '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' + out.join('') + '</svg>';
 }
