@@ -19,6 +19,8 @@
     --amber: #ffd98a;
     --green: #9fe6b8;
     --mono: Consolas, "Courier New", monospace;
+    --frame: #a8d4ff;
+    --frame-dim: rgba(58,118,255,0.55);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
@@ -57,7 +59,7 @@
   .hud .stats span { color: var(--cyan); }
   .hud .gear {
     cursor: pointer; color: var(--cyan-dim); border: 1px solid var(--line);
-    border-radius: 4px; padding: 3px 8px; font-size: 12px; background: rgba(6,13,34,0.6);
+    border-radius: 0; padding: 3px 8px; font-size: 12px; background: rgba(6,13,34,0.6);
   }
   .hud .gear:hover { color: var(--cyan); border-color: var(--line-bright); }
 
@@ -85,27 +87,32 @@
     pointer-events: none;
   }
 
+  /* 角欠きフレーム（lookdev-1承認・v26展開）: 要素=枠色+クリップ、::after=内側の地+走査線 */
   .panel {
     position: absolute;
-    background: var(--panel);
-    border: 1px solid var(--line-bright);
-    border-radius: 4px;
-    box-shadow: 0 0 26px rgba(58,110,255,0.22), inset 0 0 46px rgba(58,110,255,0.05);
+    --cutL: 18px; --cut: 8px;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
+    filter: drop-shadow(0 0 13px rgba(58,110,255,0.3));
     cursor: pointer;
   }
   .panel::after {
-    content: ""; position: absolute; inset: 0; border-radius: 4px; pointer-events: none;
-    background: repeating-linear-gradient(0deg, rgba(122,160,255,0.028) 0 1px, transparent 1px 3px);
+    content: ""; position: absolute; inset: 1.6px; z-index: 0; pointer-events: none;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background:
+      repeating-linear-gradient(0deg, rgba(122,160,255,0.028) 0 1px, transparent 1px 3px),
+      linear-gradient(168deg, rgba(12,22,48,0.94), rgba(5,10,24,0.96));
   }
-  .panel:hover, .panel:active {
-    box-shadow: 0 0 40px rgba(122,160,255,0.4), inset 0 0 46px rgba(58,110,255,0.1);
-    border-color: var(--cyan);
-  }
-  .corner { position: absolute; width: 14px; height: 14px; pointer-events: none; z-index: 2; }
-  .corner.tl { top: -2px; left: -2px; border-top: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-  .corner.tr { top: -2px; right: -2px; border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
-  .corner.bl { bottom: -2px; left: -2px; border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan); }
-  .corner.br { bottom: -2px; right: -2px; border-bottom: 2px solid var(--cyan); border-right: 2px solid var(--cyan); }
+  .panel > * { position: relative; z-index: 1; }
+  .panel:hover, .panel:active { filter: drop-shadow(0 0 22px rgba(122,160,255,0.5)); }
 
   .p-head {
     display: flex; align-items: center; gap: 8px;
@@ -139,14 +146,14 @@
   .meter:hover .lbl span:first-child { color: var(--cyan); }
   .meter .lbl { display: flex; justify-content: space-between; font-size: 12px; color: var(--text); margin-bottom: 4px; }
   .meter .lbl span:last-child { font-family: var(--mono); color: var(--cyan); }
-  .meter .bar { height: 4px; background: rgba(58,110,255,0.14); border-radius: 2px; overflow: hidden; }
+  .meter .bar { height: 4px; background: rgba(58,110,255,0.14); overflow: hidden; }
   .meter .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--line-bright), var(--cyan)); box-shadow: 0 0 6px rgba(122,160,255,0.6); }
 
   .kcard {
     display: flex; gap: 10px; align-items: stretch;
     background: rgba(12, 24, 54, 0.75);
     border: 1px solid rgba(58,110,255,0.4);
-    border-radius: 3px;
+    border-radius: 0;
     padding: 9px 10px;
     margin-bottom: 9px;
     position: relative;
@@ -172,8 +179,8 @@
   .kcard .one { font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .kcard .row2 { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
   .imp { font-family: var(--mono); font-size: 10px; color: var(--cyan-dim); letter-spacing: 1px; }
-  .tag { font-size: 10px; color: var(--cyan-dim); border: 1px solid rgba(58,110,255,0.45); border-radius: 3px; padding: 1px 6px; }
-  .chip { font-size: 10px; border-radius: 3px; padding: 1px 7px; margin-left: auto; white-space: nowrap; }
+  .tag { font-size: 10px; color: var(--cyan-dim); border: 1px solid rgba(58,110,255,0.45); border-radius: 0; padding: 1px 6px; }
+  .chip { font-size: 10px; border-radius: 0; padding: 1px 7px; margin-left: auto; white-space: nowrap; }
   .chip.enriched { color: var(--cyan); background: rgba(58,110,255,0.16); border: 1px solid rgba(58,110,255,0.5); }
   .chip.captured { color: var(--amber); background: rgba(255,217,138,0.1); border: 1px solid rgba(255,217,138,0.4); }
   .chip.applied { color: var(--green); background: rgba(159,230,184,0.1); border: 1px solid rgba(159,230,184,0.4); }
@@ -192,7 +199,7 @@
   .search {
     flex: 1; display: flex; align-items: center; gap: 8px;
     background: rgba(6, 13, 34, 0.8);
-    border: 1px solid var(--line); border-radius: 3px;
+    border: 1px solid var(--line); border-radius: 0;
     padding: 9px 12px;
   }
   .search input {
@@ -200,11 +207,11 @@
     color: var(--text); font-size: 13px; font-family: inherit; min-width: 0;
   }
   .search input::placeholder { color: var(--muted); }
-  .search .key { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; }
+  .search .key { font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 0; padding: 1px 5px; }
   .capture {
     font-family: var(--mono); font-size: 13px; letter-spacing: 1px;
     color: #041028; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim));
-    border: none; border-radius: 3px; padding: 10px 18px; cursor: pointer;
+    border: none; border-radius: 0; padding: 10px 18px; cursor: pointer;
     box-shadow: 0 0 16px rgba(122,160,255,0.45);
     font-weight: 700;
   }
@@ -219,11 +226,28 @@
   #view.open { display: block; }
   .vpanel {
     position: relative; max-width: 880px; margin: 0 auto;
-    background: var(--panel-solid);
-    border: 1px solid var(--line-bright); border-radius: 4px;
-    box-shadow: 0 0 34px rgba(58,110,255,0.28);
+    --cutL: 25px; --cut: 11px;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
+    filter: drop-shadow(0 0 16px rgba(58,110,255,0.32));
     animation: viewIn 0.22s ease-out;
   }
+  .vpanel::after {
+    content: ""; position: absolute; inset: 1.6px; z-index: 0; pointer-events: none;
+    clip-path: polygon(
+      var(--cutL) 0, calc(100% - var(--cut)) 0, 100% var(--cut),
+      100% calc(100% - var(--cutL)), calc(100% - var(--cutL)) 100%,
+      var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
+    );
+    background:
+      repeating-linear-gradient(0deg, rgba(122,160,255,0.02) 0 1px, transparent 1px 3px),
+      linear-gradient(168deg, rgba(10,19,40,0.97), rgba(4,8,19,0.985));
+  }
+  .vpanel > * { position: relative; z-index: 1; }
   @keyframes viewIn { from { opacity: 0; transform: scale(0.965) translateY(8px); } to { opacity: 1; transform: none; } }
   .vhead {
     display: flex; align-items: center; gap: 10px;
@@ -236,7 +260,7 @@
     display: none; pointer-events: auto;
     font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
     color: var(--cyan); background: rgba(6,13,34,0.9);
-    border: 1px solid var(--line-bright); border-radius: 3px;
+    border: 1px solid var(--line-bright); border-radius: 0;
     padding: 5px 11px; cursor: pointer;
     box-shadow: 0 0 8px rgba(58,110,255,0.3);
   }
@@ -252,7 +276,7 @@
   .field label em { font-style: normal; color: var(--amber); }
   input[type="text"], input[type="search"], input[type="url"], textarea, select {
     width: 100%; background: rgba(6, 13, 34, 0.85);
-    border: 1px solid var(--line); border-radius: 3px;
+    border: 1px solid var(--line); border-radius: 0;
     color: var(--text); padding: 9px 12px; font-size: 14px; font-family: inherit;
     outline: none;
   }
@@ -264,12 +288,17 @@
   .btn {
     font-family: var(--mono); font-size: 12px; letter-spacing: 1px;
     color: var(--cyan); background: rgba(58,110,255,0.08);
-    border: 1px solid var(--line-bright); border-radius: 3px;
+    border: 1px solid var(--line-bright); border-radius: 0;
     padding: 9px 16px; cursor: pointer;
   }
   .btn:hover { background: rgba(58,110,255,0.18); }
   .btn:active { transform: scale(0.97); }
-  .btn.primary { color: #041028; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim)); border: none; font-weight: 700; box-shadow: 0 0 14px rgba(122,160,255,0.4); }
+  .btn.primary {
+    color: #041028; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim)); border: none; font-weight: 700;
+    clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
+    padding-left: 22px; padding-right: 22px;
+    filter: drop-shadow(0 0 9px rgba(122,160,255,0.45));
+  }
   .btn.danger { color: #ff9a9a; border-color: rgba(255,120,120,0.5); background: rgba(255,120,120,0.06); }
   details.adv { margin-top: 4px; }
   details.adv summary { cursor: pointer; font-family: var(--mono); font-size: 11px; letter-spacing: 1px; color: var(--cyan-dim); padding: 6px 0; list-style: none; }
@@ -295,9 +324,9 @@
   .dtitle { font-size: 19px; font-weight: 700; color: var(--text); margin: 4px 0 2px; }
   .done { font-size: 13px; color: var(--cyan-dim); margin-bottom: 10px; }
   .dmeta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .dmeta .cat { font-size: 11px; color: var(--text); background: rgba(58,110,255,0.12); border: 1px solid rgba(58,110,255,0.4); border-radius: 3px; padding: 2px 8px; }
+  .dmeta .cat { font-size: 11px; color: var(--text); background: rgba(58,110,255,0.12); border: 1px solid rgba(58,110,255,0.4); border-radius: 0; padding: 2px 8px; }
   .dmeta .date { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
-  .sec { border: 1px solid rgba(58,110,255,0.25); border-radius: 3px; margin-bottom: 12px; overflow: hidden; }
+  .sec { border: 1px solid rgba(58,110,255,0.25); border-radius: 0; margin-bottom: 12px; overflow: hidden; }
   .sec .shead { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: var(--cyan-dim); padding: 7px 12px; background: rgba(58,110,255,0.07); border-bottom: 1px solid rgba(58,110,255,0.2); }
   .sec .sbody { padding: 12px; font-size: 13px; line-height: 1.8; color: var(--text); white-space: pre-wrap; word-break: break-word; }
   .sec .sbody.dim { color: var(--muted); font-size: 12px; }
@@ -312,7 +341,7 @@
   .sec.proposal .shead { color: var(--amber); background: rgba(255,217,138,0.06); border-bottom-color: rgba(255,217,138,0.25); }
   .pchip {
     display: inline-block; font-size: 12px; color: var(--amber);
-    border: 1px dashed rgba(255,217,138,0.55); border-radius: 3px;
+    border: 1px dashed rgba(255,217,138,0.55); border-radius: 0;
     padding: 3px 10px; margin: 0 6px 6px 0; cursor: pointer; user-select: none;
   }
   .pchip.on { color: var(--cyan); border: 1px solid var(--line-bright); background: rgba(58,110,255,0.14); }
@@ -353,7 +382,7 @@
   .attgrid .att img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .attgrid .att .rm {
     position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
-    background: rgba(3,7,17,0.85); color: #ff9a9a; border: 1px solid rgba(255,120,120,0.5); border-radius: 3px;
+    background: rgba(3,7,17,0.85); color: #ff9a9a; border: 1px solid rgba(255,120,120,0.5); border-radius: 0;
     font-size: 11px; line-height: 16px; text-align: center; cursor: pointer;
   }
   input[type="file"] { color: var(--muted); font-size: 12px; }
@@ -364,7 +393,7 @@
   }
   .lightbox img { max-width: 94vw; max-height: 92vh; border: 1px solid var(--line-bright); border-radius: 4px; box-shadow: 0 0 40px rgba(58,110,255,0.4); }
 
-  .gterm { border: 1px solid rgba(58,110,255,0.25); border-radius: 3px; padding: 10px 12px; margin-bottom: 10px; }
+  .gterm { border: 1px solid rgba(58,110,255,0.25); border-radius: 0; padding: 10px 12px; margin-bottom: 10px; }
   .gterm .gname { color: var(--cyan); font-weight: 700; font-size: 14px; }
   .gterm .gdesc { font-size: 12px; color: var(--text); margin: 4px 0 6px; line-height: 1.7; }
   .gterm .gsrc { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -485,8 +514,7 @@
     93% { opacity: 0.4; top: 90%; }
     94%, 100% { opacity: 0; top: 106%; }
   }
-  .panel::after, .ccard::after { animation: holoFlicker 7s steps(1) infinite; }
-  .ccard::after { animation-duration: 9s; animation-delay: 1.4s; }
+  .ccard::after { animation: holoFlicker 9s steps(1) infinite; animation-delay: 1.4s; }
   @keyframes holoFlicker {
     0%, 90.6%, 91.6%, 93%, 100% { opacity: 1; }
     91% { opacity: 0.45; }
@@ -497,7 +525,7 @@
     position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(20px);
     z-index: 40; opacity: 0; pointer-events: none;
     font-family: var(--mono); font-size: 12px; letter-spacing: 1px; color: var(--cyan);
-    background: rgba(6, 14, 36, 0.94); border: 1px solid var(--line-bright); border-radius: 3px;
+    background: rgba(6, 14, 36, 0.94); border: 1px solid var(--line-bright); border-radius: 0;
     padding: 10px 16px; box-shadow: 0 0 20px rgba(58,110,255,0.35);
     transition: opacity 0.25s, transform 0.25s;
     max-width: 90vw; text-align: center;
@@ -571,26 +599,22 @@
     <div class="floor"></div>
 
     <section class="panel float d1" id="panel-archive">
-      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="p-head"><span class="dot"></span>ARCHIVE<span class="jp">カテゴリ別</span></div>
+            <div class="p-head"><span class="dot"></span>ARCHIVE<span class="jp">カテゴリ別</span></div>
       <div class="p-body" id="archive-body"></div>
     </section>
 
     <section class="panel float" id="panel-records">
-      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="p-head"><span class="dot"></span>RECENT RECORDS<span class="jp">最近の知識 — タップで一覧へ</span></div>
+            <div class="p-head"><span class="dot"></span>RECENT RECORDS<span class="jp">最近の知識 — タップで一覧へ</span></div>
       <div class="p-body" id="recent-body"></div>
     </section>
 
     <section class="panel float d2" id="panel-system">
-      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="p-head"><span class="dot"></span>SYSTEM<span class="jp">状態</span></div>
+            <div class="p-head"><span class="dot"></span>SYSTEM<span class="jp">状態</span></div>
       <div class="p-body" id="system-body"></div>
     </section>
 
     <section class="panel" id="console">
-      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="console-inner">
+            <div class="console-inner">
         <div class="search">
           <span style="color:var(--muted);">⌕</span>
           <input id="searchbox" type="search" placeholder="知識を検索…（タイトル / タグ / 本文）" enterkeyhint="search">
@@ -994,7 +1018,7 @@ function viewCapture() {
   var catOpts = CATS.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
   var typeOpts = Object.keys(TYPES).map(function (k) { return '<option value="' + k + '">' + TYPES[k] + '</option>'; }).join('');
   var tagList = allTags().map(function (t) { return '<option value="' + esc(t) + '">'; }).join('');
-  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+  var html = '<div class="vpanel">' +
     vhead('CAPTURE', '知識を登録 — タイトルだけで保存できます') +
     '<div class="vbody">' +
     '<div class="field"><label>TITLE <em>*必須</em></label><input type="text" id="f-title" placeholder="例: 水面の動きがゴムっぽく見える原因" autocomplete="off"></div>' +
@@ -1116,7 +1140,7 @@ function parseQuery(hash) {
 function viewList(q) {
   var catOpts = '<option value="">全カテゴリ</option>' + CATS.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
   var stOpts = '<option value="">全状態</option>' + Object.keys(STATUS).map(function (k) { return '<option value="' + k + '">' + STATUS[k] + '</option>'; }).join('');
-  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+  var html = '<div class="vpanel">' +
     vhead('RECORDS', '知識データベース一覧') +
     '<div class="vbody">' +
     '<div class="field"><input type="search" id="l-q" placeholder="検索…（タイトル / 一言 / 本文 / タグ）" enterkeyhint="search"></div>' +
@@ -1229,7 +1253,7 @@ function viewDetail(id) {
     var used = (r.usedIn || []).map(function (u) { return '<div class="log"><span class="d">' + esc(u.date) + '</span><b>' + esc(u.project) + '</b> — ' + esc(u.note || '') + '</div>'; }).join('');
     var links = (r.links || []).map(function (u) { return '<div><a href="' + esc(u) + '" target="_blank" rel="noopener" style="color:var(--cyan);font-size:12px;word-break:break-all;">' + esc(u) + '</a></div>'; }).join('');
 
-    var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    var html = '<div class="vpanel">' +
       vhead('RECORD ' + esc(r.id), 'STATUS: ' + (STATUS[r.status] || r.status)) +
       '<div class="vbody">' +
       '<div class="dhead"><span class="kid">' + esc(r.id) + '</span>' +
@@ -1523,7 +1547,7 @@ function viewAI(id) {
         '<div class="field"><textarea id="ai-paste" placeholder="AIの返答をそのまま貼り付け（JSON以外が混ざっていてもOK）"></textarea></div>' +
         '<div class="btnrow" style="margin-top:0;"><button class="btn" id="ai-parse">取り込む ▸ ANALYZE</button></div>' +
       '</details>';
-    var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    var html = '<div class="vpanel">' +
       vhead('AI ANALYSIS ' + esc(r.id), 'AI整理') +
       '<div class="vbody">' +
       '<div class="sec"><div class="shead">SOURCE — 元メモ</div><div class="sbody" style="font-size:12px;"><b>' + esc(r.title) + '</b>' + (r.oneLiner ? '<br>' + esc(r.oneLiner) : '') + '</div></div>' +
@@ -1660,7 +1684,7 @@ function renderEdit(r) {
   var catOpts = CATS.map(function (c) { return '<option value="' + esc(c) + '">' + esc(c) + '</option>'; }).join('');
   var typeOpts = Object.keys(TYPES).map(function (k) { return '<option value="' + k + '"' + (r.type === k ? ' selected' : '') + '>' + TYPES[k] + '</option>'; }).join('');
   var parts = (r.category || '').split('/');
-  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+  var html = '<div class="vpanel">' +
     vhead('EDIT ' + esc(r.id), '編集') +
     '<div class="vbody">' +
     '<div class="field"><label>TITLE <em>*必須</em></label><input type="text" id="e-title" value="' + esc(r.title) + '"></div>' +
@@ -1702,7 +1726,7 @@ function renderEdit(r) {
 
 /* ---------- settings view ---------- */
 function viewSettings() {
-  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+  var html = '<div class="vpanel">' +
     vhead('SETTINGS', '設定・バックアップ') +
     '<div class="vbody">' +
     '<div class="sec"><div class="shead">AI — Claude API 連携</div><div class="sbody">' +
@@ -1882,7 +1906,7 @@ function collectTerms() {
   return Object.keys(map).sort().map(function (k) { return map[k]; });
 }
 function viewTerms(q) {
-  var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+  var html = '<div class="vpanel">' +
     vhead('GLOSSARY', '用語集 — AI整理で覚えた技術語が自動で溜まります') +
     '<div class="vbody">' +
     '<div class="field"><input type="search" id="t-q" placeholder="用語を検索…" enterkeyhint="search"></div>' +
@@ -1965,7 +1989,7 @@ function viewCards(q) {
     var spreadSize = mobile ? perSide : perSide * 2;
     var totalPages = Math.max(1, Math.ceil(list.length / spreadSize));
     var page = Math.min(totalPages - 1, Math.max(0, parseInt(q.get('p') || '0', 10) || 0));
-    var html = '<div class="vpanel"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>' +
+    var html = '<div class="vpanel">' +
       vhead('COLLECTION', '知識カードブック — カードをタップで拡大') +
       '<div class="vbody">' +
       '<div class="booknav">' +

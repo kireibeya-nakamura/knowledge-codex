@@ -57,9 +57,10 @@ Concrete, current tokens — keep new work inside these unless the author explic
 - **Frame detail is what sells the look, not blur.** Corner brackets, thin hairlines, tick marks,
   monospace status readouts (`RECORDS: n // SYNC hh:mm:ss`, `KX-0042`, section codes like
   `SOL`/`INS`). The precision reads as "analysis terminal"; excess glow/blur reads as cheap.
-- **Corners are sharp, not soft.** The reference aesthetic is angular sci-fi framing. Panels/cards
-  ~4px, controls/sections ~3px, chips ~2–3px. If a screen feels like rounded consumer cards,
-  reduce the radius before adding anything.
+- **Corners are sharp, not soft.** (Updated v26.) Panels use **corner-cut polygon frames**
+  (clip-path, large cut TL/BR ~18-25px + small cut ~8-11px, bright gradient frame line + inner fill
+  layer); controls/inputs/chips are **fully square (0px radius)**. Cards (.ccard family) keep their
+  own 4px + bracket identity. If a screen feels like rounded consumer cards, something regressed.
 - **Motion is subtle and occasional.** Panel float, a glitch band that crosses "たまに" (every
   several seconds, staggered per panel), a one-frame scanline flicker. Rule: *if you notice the
   glitch every second, it's too loud.* Motion must never impede reading or input.
@@ -362,3 +363,12 @@ This skill holds the *judgment*. Keep the three consistent.
   Application is staged: v25 background layer first (opacity 0.75 behind particles), panel corner-cut
   frames next. Also learned: a lookdev mock needs its dead buttons labeled or a working exit — the
   author read it as the app and got "stuck".
+- **2026-07-12 (v26) — Corner-cut frames + square controls rolled out app-wide.** Technique note for
+  reuse: with ::before (glitch band) and ::after (scanlines) already taken on panels, the frame was
+  done WITHOUT wrapper markup — element itself becomes the frame (clip-path polygon + bright gradient
+  bg + drop-shadow, since box-shadow dies under clip-path), and ::after was repurposed as the inner
+  fill (inset 1.6px, same polygon, scanlines stacked over the panel gradient), children lifted with
+  `> * { position:relative; z-index:1 }`. Old corner-bracket spans deleted everywhere (frame replaces
+  them). Controls went 3px→0. Panel interiors became near-opaque (reference-accurate; the circuit
+  shows AROUND panels, not through them — readability won too). Panel holoFlicker was cut: flickering
+  the fill layer flashes the frame gradient through the interior.
