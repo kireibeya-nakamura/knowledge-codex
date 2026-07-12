@@ -338,3 +338,16 @@ This skill holds the *judgment*. Keep the three consistent.
   "open", and high shimmer partials (1046/1568Hz, fixed pitch) breathing in the verb; overall volumes
   lowered. No-pitch-sweep rule still stands. Rule of thumb: **dry = cheap; the HUD identity is quiet
   layers + real reverb + sub weight.**
+- **2026-07-12 (v24, ends the sound saga) — Synthesis was abandoned for real samples.** Even the
+  reverb rework (v23) read as 安っぽい to the author. Root causes worth recording: (a) the premium in
+  professional HUD sound is largely the *source material* (recorded glass/metal/breath), which
+  WebAudio math can approximate but not match; (b) the AI director cannot hear — iterating synthesis
+  against a reference video is guessing. Resolution: Kenney "Interface Sounds" (CC0) samples,
+  converted OGG→mono WAV because **iOS Safari cannot decode OGG**; 6 files ≈83KB in `sounds/`;
+  `beep(kind)` API and the sound toggle unchanged; AudioContext now created suspended at boot with
+  decode-ahead so the first tap already sounds. The "single HTML" rule was consciously relaxed to
+  "no build, no library deps" — asset files are fine when they buy real quality. Lessons: (1) know
+  which qualities are *material* problems vs *engineering* problems — engineering iterations can't
+  fix a material problem; (2) when the director lacks the sense being judged (audio), switch from
+  "generate and hope" to "curate from professionally-made CC0 material and let the author's ear pick";
+  (3) sound assignments are one-line swaps now — taste iteration became cheap, which is the real win.

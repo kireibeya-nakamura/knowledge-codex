@@ -1,0 +1,2 @@
+These UI sounds are from Kenney's "Interface Sounds" pack (https://kenney.nl/assets/interface-sounds), License: CC0 1.0 Universal (public domain).
+tap.wav=tick_001 / open.wav=maximize_003 / ok.wav=confirmation_001 / err.wav=error_008 / flip.wav=scratch_003 / spin.wav=glass_002

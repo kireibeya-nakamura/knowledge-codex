@@ -3,6 +3,15 @@
 Claude/Codex引き継ぎ用。変更したら必ずここに記録する。
 携帯確認URL: https://kireibeya-nakamura.github.io/knowledge-codex/?v=N （Nは毎回上げる）
 
+## v24 — 2026-07-12 【効果音を合成からKenney CC0サンプルへ全面置換】
+
+- ユーザー判断: v23（合成+リバーブ）でもまだ安っぽい → **本物の録音素材に切替**。Kenney「Interface Sounds」パック（CC0・商用可・クレジット不要、https://kenney.nl/assets/interface-sounds）から6音選定
+- 割当: tap=tick_001 / open=maximize_003 / ok=confirmation_001 / err=error_008 / flip=scratch_003 / spin=glass_002。**iPhone SafariがOGG非対応のためWAV（モノ44.1kHz）へ変換**、`sounds/`に配置（計約83KB+LICENSE.txt）
+- エンジン刷新: 合成コード（nz/tn/ディレイ/リバーブ/ノイズバッファ）を全廃し、fetch+decodeAudioDataのサンプル再生に。**起動時にsuspendedでAudioContext生成→デコード完了まで済ませ、初回タップから鳴る**（再生はジェスチャーのresume後）。`beep(kind)`のAPI・`kx-sound`トグルは不変
+- 注意: 「単一HTML」から「HTML+sounds/」構成に（ビルドなし・ライブラリ依存なしは維持）。音の差し替えは`sounds/*.wav`の置換のみ
+- 音選定は名前・長さからの推定（AIは音声を聴けない）。**実機で6音を確認し、合わない音は代替候補と差し替え可能**（パック全100音を検討済み環境に保持）
+- 検証: JScript構文チェック合格。fetchは相対パスなのでGitHub Pages/ローカルサーバ両対応
+
 ## v23 — 2026-07-11 【効果音をHUDサウンドデザインへ（リバーブ導入）】
 
 - 参照: ユーザー提示の動画「Futuristic HUD Sound Design | Blake Sanchez」。あの質感の核は**音が空間（リバーブ）の中に置かれている**こと。従来は短いスラップディレイのみ＝乾いて安く聞こえていた

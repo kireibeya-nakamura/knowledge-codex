@@ -625,140 +625,55 @@ function showToast(msg) {
   toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2400);
 }
 
-/* ---------- sound (WebAudio synth) ---------- */
-var audioCtx = null, sndMaster = null, sndDelay = null, sndVerb = null, noiseBuf = null;
+/* ---------- sound (Kenney "Interface Sounds" CC0 samples / sounds/) ---------- */
+var audioCtx = null, sndMaster = null, sndBufs = {}, sndLoading = false;
+var SND_SRC = { tap: 'sounds/tap.wav', open: 'sounds/open.wav', ok: 'sounds/ok.wav', err: 'sounds/err.wav', flip: 'sounds/flip.wav', spin: 'sounds/spin.wav' };
+var SND_VOL = { tap: 0.55, open: 0.6, ok: 0.65, err: 0.6, flip: 0.5, spin: 0.55 };
 function soundOn() { return localStorage.getItem('kx-sound') !== 'off'; }
+/* 起動時にsuspendedで生成してデコードまで済ませる（初回タップから鳴らすため）。再生はジェスチャーでresume後 */
+function initAudio() {
+  if (audioCtx || sndLoading) return;
+  var AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  audioCtx = new AC();
+  sndMaster = audioCtx.createGain();
+  sndMaster.gain.value = 0.9;
+  sndMaster.connect(audioCtx.destination);
+  sndLoading = true;
+  Object.keys(SND_SRC).forEach(function (k) {
+    fetch(SND_SRC[k]).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      return r.arrayBuffer();
+    }).then(function (ab) {
+      return new Promise(function (res, rej) { audioCtx.decodeAudioData(ab, res, rej); });
+    }).then(function (buf) { sndBufs[k] = buf; }).catch(function () {});
+  });
+}
 function audioReady() {
-  if (!audioCtx) {
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return false;
-    audioCtx = new AC();
-    // master bus: gain -> gentle lowpass -> destination (tames harsh highs)
-    sndMaster = audioCtx.createGain();
-    sndMaster.gain.value = 0.8;
-    var lp = audioCtx.createBiquadFilter();
-    lp.type = 'lowpass'; lp.frequency.value = 7500; lp.Q.value = 0.5;
-    sndMaster.connect(lp); lp.connect(audioCtx.destination);
-    // short feedback delay: discreet echo (send-based, thin)
-    sndDelay = audioCtx.createDelay(0.5);
-    sndDelay.delayTime.value = 0.068;
-    var fb = audioCtx.createGain(); fb.gain.value = 0.14;
-    var wet = audioCtx.createGain(); wet.gain.value = 0.15;
-    sndDelay.connect(fb); fb.connect(sndDelay); sndDelay.connect(wet); wet.connect(lp);
-    // convolution reverb: the "HUD in a room" air. Generated IR, no assets.
-    // Return is highpassed so tails stay airy, never muddy.
-    var irDur = 1.4, irLen = Math.floor(audioCtx.sampleRate * irDur);
-    var ir = audioCtx.createBuffer(2, irLen, audioCtx.sampleRate);
-    for (var c = 0; c < 2; c++) {
-      var d = ir.getChannelData(c);
-      for (var j = 0; j < irLen; j++) d[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / irLen, 3.2);
-    }
-    sndVerb = audioCtx.createConvolver();
-    sndVerb.buffer = ir;
-    var vhp = audioCtx.createBiquadFilter();
-    vhp.type = 'highpass'; vhp.frequency.value = 420; vhp.Q.value = 0.5;
-    var vg = audioCtx.createGain(); vg.gain.value = 0.55;
-    sndVerb.connect(vhp); vhp.connect(vg); vg.connect(lp);
-    // one reusable noise buffer for tactile transients
-    noiseBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
-    var nd = noiseBuf.getChannelData(0);
-    for (var i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
-  }
+  if (!audioCtx) initAudio();
+  if (!audioCtx) return false;
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return true;
-}
-// ---- futuristic HUD sound design (参照: Blake Sanchez "Futuristic HUD Sound Design") ----
-// Doctrine: no oscillator pitch sweeps (reads as "pico-pico"). The identity is
-// quiet layers placed IN SPACE: filtered-noise transients (tck) + data-tick runs,
-// glassy filter-swept noise (shk), fixed-pitch shimmer partials, and a sub-low
-// thump (50-70Hz) for physical weight — all breathing through a soft airy reverb.
-
-// filtered noise: the click / scan / glass layer. Sweep the FILTER, never a pitch.
-function nz(o) {
-  var t = audioCtx.currentTime + (o.when || 0);
-  var dur = o.dur || 0.03;
-  var src = audioCtx.createBufferSource();
-  src.buffer = noiseBuf; src.loop = true;
-  var f = audioCtx.createBiquadFilter();
-  f.type = o.type || 'bandpass';
-  f.Q.value = o.q == null ? 1.2 : o.q;
-  f.frequency.setValueAtTime(o.fc0 || 3000, t);
-  if (o.fc1) f.frequency.exponentialRampToValueAtTime(o.fc1, t + dur);
-  var g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(o.vol || 0.03, t + (o.atk || 0.003));
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  src.connect(f); f.connect(g); g.connect(sndMaster);
-  if (o.send) g.connect(sndDelay);
-  if (o.verb) g.connect(sndVerb);
-  src.start(t); src.stop(t + dur + 0.02);
-}
-// fixed-pitch low/mid tone: body and warmth. Pitch stays put (or drifts a few Hz).
-function tn(o) {
-  var t = audioCtx.currentTime + (o.when || 0);
-  var dur = o.dur || 0.12;
-  var osc = audioCtx.createOscillator();
-  osc.type = o.type || 'sine';
-  osc.frequency.setValueAtTime(o.f, t);
-  if (o.f1) osc.frequency.linearRampToValueAtTime(o.f1, t + dur);
-  var g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(o.vol || 0.035, t + (o.atk || 0.01));
-  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-  osc.connect(g); g.connect(sndMaster);
-  if (o.send) g.connect(sndDelay);
-  if (o.verb) g.connect(sndVerb);
-  osc.start(t); osc.stop(t + dur + 0.03);
 }
 function beep(kind) {
   if (!soundOn()) return;
   try {
     if (!audioReady()) return;
-    switch (kind) {
-      case 'tap': // soft tick in air + sub weight: felt more than heard
-        nz({ type: 'bandpass', fc0: 2600, q: 1.4, dur: 0.016, vol: 0.042, verb: true });
-        tn({ f: 62, dur: 0.05, vol: 0.04, atk: 0.003 });
-        break;
-      case 'open': // HUD window materializes: tick → data-tick run + air swell + sub + faint shimmer
-        nz({ type: 'highpass', fc0: 3600, q: 0.7, dur: 0.012, vol: 0.028 });
-        nz({ type: 'bandpass', fc0: 3000, q: 3, dur: 0.018, vol: 0.02, when: 0.035, verb: true });
-        nz({ type: 'bandpass', fc0: 3500, q: 3, dur: 0.018, vol: 0.016, when: 0.065, verb: true });
-        nz({ type: 'bandpass', fc0: 4000, q: 3, dur: 0.018, vol: 0.012, when: 0.095, verb: true });
-        nz({ fc0: 700, fc1: 3200, q: 1.8, dur: 0.28, vol: 0.015, when: 0.02, send: true, verb: true });
-        tn({ f: 62, dur: 0.1, vol: 0.05, atk: 0.006 });
-        tn({ f: 1046.5, dur: 0.25, vol: 0.008, atk: 0.05, verb: true });
-        break;
-      case 'ok': // serene confirm: sub thump + warm dyad + high partial, breathing in reverb
-        tn({ f: 62, dur: 0.11, vol: 0.055, atk: 0.005 });
-        tn({ f: 523.25, dur: 0.3, vol: 0.022, atk: 0.02, verb: true });
-        tn({ f: 784, dur: 0.34, vol: 0.014, atk: 0.03, verb: true });
-        tn({ f: 1568, dur: 0.3, vol: 0.007, atk: 0.04, verb: true });
-        nz({ type: 'highpass', fc0: 4200, q: 0.7, dur: 0.01, vol: 0.02 });
-        nz({ fc0: 5600, q: 3.5, dur: 0.1, vol: 0.008, when: 0.05, verb: true });
-        break;
-      case 'err': // muted low alert: beating low sines + deep floor thud, slight room
-        tn({ f: 138, dur: 0.16, vol: 0.042, atk: 0.005, verb: true });
-        tn({ f: 104, dur: 0.19, vol: 0.03, atk: 0.005, verb: true });
-        nz({ type: 'lowpass', fc0: 380, q: 1, dur: 0.06, vol: 0.03 });
-        tn({ f: 52, dur: 0.12, vol: 0.045, atk: 0.004 });
-        break;
-      case 'flip': // page scan: downward glass sweep + breath layer, tick lands at the end
-        nz({ fc0: 1600, fc1: 520, q: 1.6, dur: 0.12, vol: 0.022, verb: true });
-        nz({ type: 'highpass', fc0: 5000, q: 0.6, dur: 0.14, vol: 0.008, verb: true });
-        nz({ type: 'highpass', fc0: 3600, q: 0.7, dur: 0.012, vol: 0.018, when: 0.1, send: true });
-        break;
-      case 'spin': // whirl: rising glass scan into space + shimmer partial + sub touch
-        nz({ fc0: 900, fc1: 4200, q: 2.2, dur: 0.22, vol: 0.015, send: true, verb: true });
-        tn({ f: 1568, dur: 0.18, vol: 0.006, atk: 0.05, verb: true });
-        tn({ f: 62, dur: 0.06, vol: 0.03, atk: 0.004 });
-        break;
-    }
+    var buf = sndBufs[kind];
+    if (!buf) return;
+    var src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    var g = audioCtx.createGain();
+    g.gain.value = SND_VOL[kind] || 0.5;
+    src.connect(g); g.connect(sndMaster);
+    src.start();
   } catch (e) {}
 }
 document.addEventListener('click', function (e) {
   if (e.target.closest('button, .capture, .back, .gear, .brand')) { beep('tap'); return; }
   if (e.target.closest('.kcard, .bcard, .sysrow, .meter, .tag, .pchip, .star, summary, .att, tr[data-id], .gterm')) beep('open');
 }, true);
+initAudio();
 
 /* ---------- constants ---------- */
 var CATS = ['CG', 'UI・UX', 'Design', 'Coding', 'AI・Prompt', 'Workflow'];
