@@ -392,3 +392,10 @@ This skill holds the *judgment*. Keep the three consistent.
   circuit look (same two-layer frame, 11/5px cuts, cc brackets fully deleted); landscape's faded
   variant now just overrides --frame/--frame-dim per scope — CSS-var scoping is the clean way to
   theme a framed component's intensity.
+- **2026-07-12 (v29)** — CSS gotcha that bit us: removing `overflow: hidden` from the aspect-ratio
+  card made portrait-phone cards stretch tall — per spec, an aspect-ratio box with visible overflow
+  grows to its content-based minimum size; **any fixed-ratio card MUST keep overflow:hidden** (the
+  clip-path does not substitute for it). Contrast pass per author request: deeper black bg (#020409),
+  frame #7aacff, all frame glows ~1.6x, glow filter on highlighted circuit traces. The blue-glow
+  identity lives in drop-shadow intensity — tune those first when the author asks for more/less
+  "発光感".

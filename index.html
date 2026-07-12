@@ -7,7 +7,7 @@
 <title>Knowledge Codex</title>
 <style>
   :root {
-    --bg: #030711;
+    --bg: #020409;
     --panel: rgba(10, 20, 48, 0.62);
     --panel-solid: rgba(8, 16, 42, 0.96);
     --line: #1c3566;
@@ -19,8 +19,8 @@
     --amber: #ffd98a;
     --green: #9fe6b8;
     --mono: Consolas, "Courier New", monospace;
-    --frame: #6d9cf5;
-    --frame-dim: rgba(58,118,255,0.5);
+    --frame: #7aacff;
+    --frame-dim: rgba(64,124,255,0.55);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; }
@@ -36,7 +36,7 @@
   #circuit { position: fixed; inset: 0; z-index: 0; opacity: 0.9; }
   #circuit svg { width: 100%; height: 100%; display: block; }
   #circuit .tr { stroke: var(--line-bright); fill: none; stroke-linecap: square; }
-  #circuit .trhi { stroke: var(--cyan); fill: none; stroke-linecap: square; }
+  #circuit .trhi { stroke: var(--cyan); fill: none; stroke-linecap: square; filter: drop-shadow(0 0 2.5px rgba(122,168,255,0.9)); }
   #circuit .pado { stroke: var(--line-bright); fill: none; }
   #circuit .padf { fill: var(--line-bright); stroke: none; }
 
@@ -97,7 +97,7 @@
       var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
     );
     background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
-    filter: drop-shadow(0 0 10px rgba(58,110,255,0.26));
+    filter: drop-shadow(0 0 14px rgba(58,110,255,0.42));
     cursor: pointer;
   }
   .panel::after {
@@ -113,7 +113,7 @@
       linear-gradient(168deg, rgba(10,19,42,0.97), rgba(4,8,20,0.985));
   }
   .panel > * { position: relative; z-index: 1; }
-  .panel:hover, .panel:active { filter: drop-shadow(0 0 22px rgba(122,160,255,0.5)); }
+  .panel:hover, .panel:active { filter: drop-shadow(0 0 26px rgba(122,160,255,0.7)); }
 
   .p-head {
     display: flex; align-items: center; gap: 8px;
@@ -234,7 +234,7 @@
       var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
     );
     background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
-    filter: drop-shadow(0 0 12px rgba(58,110,255,0.28));
+    filter: drop-shadow(0 0 16px rgba(58,110,255,0.46));
     animation: viewIn 0.22s ease-out;
   }
   .vpanel::after {
@@ -299,7 +299,7 @@
     color: #041028; background: linear-gradient(180deg, var(--cyan), var(--cyan-dim)); border: none; font-weight: 700;
     clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 8px 100%, 0 50%);
     padding-left: 22px; padding-right: 22px;
-    filter: drop-shadow(0 0 9px rgba(122,160,255,0.45));
+    filter: drop-shadow(0 0 12px rgba(122,160,255,0.7));
   }
   .btn.danger { color: #ff9a9a; border-color: rgba(255,120,120,0.5); background: rgba(255,120,120,0.06); }
   details.adv { margin-top: 4px; }
@@ -413,7 +413,8 @@
       var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
     );
     background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
-    filter: drop-shadow(0 0 8px rgba(58,110,255,0.22));
+    filter: drop-shadow(0 0 12px rgba(58,110,255,0.4));
+    overflow: hidden; /* 必須: これが無いとaspect-ratioが中身の最小サイズに負けて縦に伸びる */
   }
   .ccard::after {
     content: ""; position: absolute; inset: 1px; z-index: 0; pointer-events: none;
@@ -501,7 +502,7 @@
       var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cutL)
     );
     background: linear-gradient(180deg, var(--frame) 0%, var(--frame-dim) 45%, var(--frame) 100%);
-    filter: drop-shadow(0 0 8px rgba(58,110,255,0.2));
+    filter: drop-shadow(0 0 12px rgba(58,110,255,0.38));
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
   }
   .cback::before {
