@@ -399,3 +399,11 @@ This skill holds the *judgment*. Keep the three consistent.
   frame #7aacff, all frame glows ~1.6x, glow filter on highlighted circuit traces. The blue-glow
   identity lives in drop-shadow intensity — tune those first when the author asks for more/less
   "発光感".
+- **2026-07-13 (v30)** — Two more 3D/CSS laws for this codebase: (1) **never put `filter` on faces
+  inside a preserve-3d flip** — it broke backface separation and the card's front/back z-fought
+  ("貫通してチラチラ"); scope `filter: none` inside .cface and separate the two faces with
+  ±translateZ(0.4px). (2) Page-turn feedback: a whole-spread 9° wobble read as nothing; the legible
+  metaphor is **the incoming page rotating up from the spine** (transform-origin at the gutter,
+  rotateY 86°→0, 0.5s; opposite page fades in) plus a gutter shadow down the spread's center. The
+  author is drifting toward a book/album identity for the collection — proposals on the table:
+  cover page, category index tabs on page edges, photo-corner slots.

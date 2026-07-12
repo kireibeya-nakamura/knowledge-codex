@@ -479,10 +479,19 @@
     display: flex; align-items: center; justify-content: center;
     font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: rgba(77,125,156,0.55);
   }
-  .bookpages.flipL { animation: flipL 0.3s ease-out; }
-  .bookpages.flipR { animation: flipR 0.3s ease-out; }
-  @keyframes flipL { from { transform: rotateY(9deg); opacity: 0.35; } to { transform: none; opacity: 1; } }
-  @keyframes flipR { from { transform: rotateY(-9deg); opacity: 0.35; } to { transform: none; opacity: 1; } }
+  /* ページめくり: 入ってくるページが背(ノド)を軸に起き上がる。反対側は下から現れる */
+  .bpage.turnInNext { animation: pageInNext 0.5s cubic-bezier(0.2, 0.7, 0.3, 1); transform-origin: left center; backface-visibility: hidden; }
+  .bpage.turnInPrev { animation: pageInPrev 0.5s cubic-bezier(0.2, 0.7, 0.3, 1); transform-origin: right center; backface-visibility: hidden; }
+  .bpage.settle { animation: pageSettle 0.45s ease-out; }
+  @keyframes pageInNext { from { transform: rotateY(86deg); opacity: 0.5; } to { transform: none; opacity: 1; } }
+  @keyframes pageInPrev { from { transform: rotateY(-86deg); opacity: 0.5; } to { transform: none; opacity: 1; } }
+  @keyframes pageSettle { from { opacity: 0.2; } to { opacity: 1; } }
+  /* 見開き中央のノドの陰影（本らしさ） */
+  .bookpages:not(.single) {
+    background:
+      linear-gradient(90deg, transparent 44%, rgba(2,4,10,0.55) 49.6%, rgba(2,4,10,0.8) 50%, rgba(2,4,10,0.55) 50.4%, transparent 56%),
+      rgba(5,10,30,0.5);
+  }
 
   .cardspace { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 6px; min-height: 70vh; justify-content: center; }
   .cshud { width: 100%; max-width: 480px; display: flex; align-items: center; justify-content: space-between; }
@@ -490,9 +499,11 @@
   .cstage { perspective: 1100px; touch-action: none; padding: 10px 0 4px; cursor: grab; user-select: none; -webkit-user-select: none; }
   .cstage:active { cursor: grabbing; }
   .cobj { position: relative; width: min(320px, 76vw); aspect-ratio: 63/88; transform-style: preserve-3d; will-change: transform; }
-  .cface { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
-  .cface.backface { transform: rotateY(180deg); }
+  /* 表裏をZ方向に微小分離+面内のfilter禁止（preserve-3d内のfilterは面のレイヤー化を壊しZファイトでチラつく） */
+  .cface { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; transform: translateZ(0.4px); }
+  .cface.backface { transform: rotateY(180deg) translateZ(0.4px); }
   .cface .ccard { height: 100%; }
+  .cface .ccard, .cface .cback { filter: none; }
   .cback {
     width: 100%; height: 100%; position: relative;
     --cutL: 11px; --cut: 5px;
@@ -2046,10 +2057,15 @@ function viewCards(q) {
         if (np === page) return;
         beep('flip');
         page = np;
-        bp.classList.remove('flipL', 'flipR');
-        void bp.offsetWidth;
-        bp.classList.add(dir > 0 ? 'flipL' : 'flipR');
         render();
+        /* 入ってくる側のページがノドを軸に起き上がる（進む=右、戻る=左）。反対側はフェードで着地 */
+        var pages = bp.children;
+        if (pages.length) {
+          var enter = dir > 0 ? pages[pages.length - 1] : pages[0];
+          var other = pages.length > 1 ? (dir > 0 ? pages[0] : pages[pages.length - 1]) : null;
+          enter.classList.add(dir > 0 ? 'turnInNext' : 'turnInPrev');
+          if (other) other.classList.add('settle');
+        }
       }
       $('#b-prev', v).addEventListener('click', function () { flip(-1); });
       $('#b-next', v).addEventListener('click', function () { flip(1); });
