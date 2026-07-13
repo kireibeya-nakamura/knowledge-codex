@@ -468,11 +468,42 @@
   .bpage { padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .bpage + .bpage { border-left: 1px solid rgba(58,110,255,0.35); }
   .bslot {
-    width: min(200px, calc((100vh - 305px) / 3 * 0.716));
-    width: min(200px, calc((100dvh - 305px) / 3 * 0.716));
+    flex: none;
+    width: min(160px, calc((100vh - 305px) / 3 * 0.716));
+    width: min(160px, calc((100dvh - 305px) / 3 * 0.716));
   }
-  .bcard { cursor: pointer; transition: transform 0.15s; }
-  .bcard:hover { transform: translateY(-3px) scale(1.02); }
+  /* アルバム行: カード左寄せ+右に概要（縦横共通・v31） */
+  .bookwrap { display: flex; align-items: stretch; }
+  .bookwrap .bookpages { flex: 1; min-width: 0; }
+  .btabs { display: flex; flex-direction: column; gap: 4px; width: 32px; flex: none; padding: 10px 0; }
+  .btab {
+    flex: 1; writing-mode: vertical-rl; text-orientation: mixed;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: var(--cyan-dim);
+    background: rgba(10,20,44,0.55); border: 1px solid rgba(58,110,255,0.3); border-left-color: rgba(58,110,255,0.12);
+    padding: 8px 2px; cursor: pointer;
+  }
+  .btab.off { opacity: 0.3; cursor: default; }
+  .btab:not(.off):hover, .btab:not(.off):active { background: rgba(58,110,255,0.2); color: var(--cyan); }
+  .brow { display: flex; gap: 12px; width: 100%; align-items: stretch; cursor: pointer; transition: transform 0.15s; }
+  .brow[data-id]:hover { transform: translateY(-2px); }
+  .bsum { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 5px; padding-right: 2px; }
+  .bsum-t { font-size: 12.5px; font-weight: 700; color: var(--text); line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .bsum-m { display: flex; align-items: center; gap: 8px; }
+  .bsum-m .chip { margin-left: 0; }
+  .bsum-cat { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--muted); }
+  .bsum-s { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1px; color: var(--cyan-dim); }
+  .bsum-s b { color: var(--cyan); font-weight: 400; letter-spacing: 2px; }
+  .bsum-g { display: flex; flex-wrap: wrap; gap: 4px; }
+  .bsum-empty { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: rgba(77,125,156,0.4); align-items: center; }
+  /* ブック内カードは簡素表示（ID+画像+題のみ。詳細は右の概要欄が担当） */
+  .bpage .ccard .cone, .bpage .ccard .cstats, .bpage .ccard .cfoot, .bpage .ccard .chead .chip { display: none; }
+  .bpage .ccard { --frame: rgba(122,168,255,0.55); --frame-dim: rgba(58,118,255,0.3); filter: drop-shadow(0 0 6px rgba(58,110,255,0.16)); }
+  .bpage .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; border-bottom-color: rgba(58,110,255,0.18); }
+  .bpage .ccard .cimg { margin: 5px 7px 0; border-color: rgba(58,110,255,0.28); }
+  .bpage .ccard .cbody { padding: 6px 7px 5px; }
+  .bpage .ccard .ctitle { font-size: 10px; font-weight: 400; letter-spacing: 0.2px; }
+  .bpage .ccard .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
   .bempty {
     width: 100%; aspect-ratio: 63/88;
     border: 1px dashed rgba(58,110,255,0.25); border-radius: 0;
@@ -571,15 +602,11 @@
     #console { bottom: 0; }
     .cardspace { min-height: 0; }
     .cobj { width: calc((100vh - 175px) * 0.716); width: calc((100dvh - 175px) * 0.716); }
-    .bpage { flex-direction: row; justify-content: center; padding: 10px 6px; gap: 8px; }
-    .bslot { width: calc((100vh - 255px) * 0.716); width: calc((100dvh - 255px) * 0.716); min-width: 72px; }
-    .bpage .ccard .cone, .bpage .ccard .cstats, .bpage .ccard .cfoot, .bpage .ccard .chead .chip { display: none; }
-    .bpage .ccard { --frame: rgba(122,168,255,0.5); --frame-dim: rgba(58,118,255,0.28); filter: drop-shadow(0 0 5px rgba(58,110,255,0.12)); }
-    .bpage .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; border-bottom-color: rgba(58,110,255,0.18); }
-    .bpage .ccard .cimg { margin: 5px 7px 0; border-color: rgba(58,110,255,0.28); }
-    .bpage .ccard .cbody { padding: 6px 7px 5px; }
-    .bpage .ccard .ctitle { font-size: 10px; font-weight: 400; letter-spacing: 0.2px; }
-    .bpage .ccard .cimg .glyph, .cobj .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
+    .bslot { width: calc((100vh - 245px) / 3 * 0.716); width: calc((100dvh - 245px) / 3 * 0.716); min-width: 54px; }
+    .bpage { padding: 8px 6px; gap: 7px; }
+    .bsum-t { font-size: 11px; -webkit-line-clamp: 1; }
+    .bsum { gap: 3px; }
+    .cobj .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
     .cobj .cback .cbem { font-size: 26px; }
     .cobj .cback .cbt { font-size: 11px; letter-spacing: 2px; }
     .cobj .cback .cbs { font-size: 7px; }
@@ -733,7 +760,7 @@ function beep(kind) {
 }
 document.addEventListener('click', function (e) {
   if (e.target.closest('button, .capture, .back, .gear, .brand')) { beep('tap'); return; }
-  if (e.target.closest('.kcard, .bcard, .sysrow, .meter, .tag, .pchip, .star, summary, .att, tr[data-id], .gterm')) beep('open');
+  if (e.target.closest('.kcard, .brow[data-id], .sysrow, .meter, .tag, .pchip, .star, summary, .att, tr[data-id], .gterm')) beep('open');
 }, true);
 initAudio();
 
@@ -2015,45 +2042,57 @@ function viewCards(q) {
     var list = state.records.filter(function (r) { return r.status !== 'archived'; })
       .sort(function (a, b) { return a.id.localeCompare(b.id); });
     var perSide = 3;
-    var mobile = matchMedia('(max-width: 760px)').matches;
-    var spreadSize = mobile ? perSide : perSide * 2;
+    /* 縦横とも「縦3行・カード左+概要右」。横持ち(低height)も単ページで統一 */
+    var single = matchMedia('(max-width: 760px)').matches || matchMedia('(max-height: 560px)').matches;
+    var spreadSize = single ? perSide : perSide * 2;
     var totalPages = Math.max(1, Math.ceil(list.length / spreadSize));
     var page = Math.min(totalPages - 1, Math.max(0, parseInt(q.get('p') || '0', 10) || 0));
     var html = '<div class="vpanel">' +
-      vhead('COLLECTION', '知識カードブック — カードをタップで拡大') +
+      vhead('COLLECTION', '知識カードブック — 行をタップで拡大') +
       '<div class="vbody">' +
       '<div class="booknav">' +
         '<button class="btn" id="b-prev" aria-label="前のページ">◀</button>' +
         '<span class="qresult" id="b-ind" style="margin:0;text-align:center;"></span>' +
         '<button class="btn" id="b-next" aria-label="次のページ">▶</button>' +
       '</div>' +
-      '<div class="bookpages' + (mobile ? ' single' : '') + '" id="bpages"></div>' +
+      '<div class="bookwrap">' +
+        '<div class="bookpages' + (single ? ' single' : '') + '" id="bpages"></div>' +
+        '<div class="btabs" id="btabs"></div>' +
+      '</div>' +
       '</div></div>';
     openView(html, function (v) {
       var bp = $('#bpages', v);
+      function rowSummaryHTML(r) {
+        var tags = (r.tags || []).slice(0, 3).map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join('');
+        return '<div class="bsum">' +
+          '<div class="bsum-t">' + esc(r.title) + '</div>' +
+          '<div class="bsum-m"><span class="chip ' + esc(r.status) + '">' + (STATUS[r.status] || r.status) + '</span><span class="bsum-cat">' + esc(r.category || '未分類') + '</span></div>' +
+          '<div class="bsum-s">IMP <b>' + dots(r.importance, 3) + '</b>　USE <b>' + (r.usedIn || []).length + '</b>　LOG <b>' + (r.appendLog || []).length + '</b></div>' +
+          (tags ? '<div class="bsum-g">' + tags + '</div>' : '') +
+          '</div>';
+      }
       function render() {
         var start = page * spreadSize;
         var slice = list.slice(start, start + spreadSize);
-        var sides = mobile ? 1 : 2;
+        var sides = single ? 1 : 2;
         var pagesHtml = '';
         for (var s = 0; s < sides; s++) {
-          var cardsHtml = '';
+          var rowsHtml = '';
           for (var i = 0; i < perSide; i++) {
             var r = slice[s * perSide + i];
-            cardsHtml += '<div class="bslot">' +
-              (r ? '<div class="bcard" data-id="' + esc(r.id) + '">' + cardFaceHTML(r) + '</div>'
-                 : '<div class="bempty">EMPTY SLOT</div>') +
-            '</div>';
+            rowsHtml += r
+              ? '<div class="brow" data-id="' + esc(r.id) + '"><div class="bslot">' + cardFaceHTML(r) + '</div>' + rowSummaryHTML(r) + '</div>'
+              : '<div class="brow"><div class="bslot"><div class="bempty">EMPTY SLOT</div></div><div class="bsum bsum-empty">— UNREGISTERED —</div></div>';
           }
-          pagesHtml += '<div class="bpage">' + cardsHtml + '</div>';
+          pagesHtml += '<div class="bpage">' + rowsHtml + '</div>';
         }
         bp.innerHTML = pagesHtml;
         hydrateCardImgs(bp);
         $('#b-ind', v).innerHTML = 'PAGE <span>' + (page + 1) + '</span> / ' + totalPages + ' ── ' + list.length + ' CARDS';
         history.replaceState(null, '', '#/cards' + (page ? '?p=' + page : ''));
       }
-      function flip(dir) {
-        var np = Math.min(totalPages - 1, Math.max(0, page + dir));
+      function goPage(np, dir) {
+        np = Math.min(totalPages - 1, Math.max(0, np));
         if (np === page) return;
         beep('flip');
         page = np;
@@ -2067,6 +2106,24 @@ function viewCards(q) {
           if (other) other.classList.add('settle');
         }
       }
+      function flip(dir) { goPage(page + dir, dir); }
+      /* 小口タブ: カテゴリの最初のカードがあるページへジャンプ */
+      var have = {};
+      list.forEach(function (r) { have[r.category || ''] = 1; });
+      $('#btabs', v).innerHTML = CATS.map(function (c) {
+        return '<button class="btab' + (have[c] ? '' : ' off') + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+      }).join('');
+      $('#btabs', v).addEventListener('click', function (e) {
+        var t = e.target.closest('.btab');
+        if (!t || t.classList.contains('off')) return;
+        for (var i = 0; i < list.length; i++) {
+          if ((list[i].category || '') === t.dataset.cat) {
+            var np = Math.floor(i / spreadSize);
+            goPage(np, np > page ? 1 : -1);
+            return;
+          }
+        }
+      });
       $('#b-prev', v).addEventListener('click', function () { flip(-1); });
       $('#b-next', v).addEventListener('click', function () { flip(1); });
       var tx = null;
@@ -2078,8 +2135,8 @@ function viewCards(q) {
         if (Math.abs(dx) > 60) flip(dx < 0 ? 1 : -1);
       }, { passive: true });
       bp.addEventListener('click', function (e) {
-        var c = e.target.closest('.bcard');
-        if (c) location.hash = '#/card/' + c.dataset.id;
+        var c = e.target.closest('.brow');
+        if (c && c.dataset.id) location.hash = '#/card/' + c.dataset.id;
       });
       render();
     });

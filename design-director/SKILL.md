@@ -407,3 +407,11 @@ This skill holds the *judgment*. Keep the three consistent.
   rotateY 86°→0, 0.5s; opposite page fades in) plus a gutter shadow down the spread's center. The
   author is drifting toward a book/album identity for the collection — proposals on the table:
   cover page, category index tabs on page edges, photo-corner slots.
+- **2026-07-13 (v31)** — Book became an ALBUM: author specified the unifying layout themselves —
+  both orientations show 3 vertical rows, card flush-left, summary text in the right space (title,
+  status, category, IMP/USE/LOG counts, tags). Cards inside the book are now photo-simple (ID+image+
+  title); the summary carries the data — split the object from its caption like a real album page.
+  Edge index tabs (vertical-rl category tabs, jump-to-first-card-page with the page-turn animation,
+  disabled when empty) double as decoration AND search path — the best kind of flourish. Landscape
+  now matches portrait (single page, smaller cards) — when the author asks to "reduce the difference
+  between orientations", unify the STRUCTURE and let only the scale change.
