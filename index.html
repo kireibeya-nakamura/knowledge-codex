@@ -468,10 +468,12 @@
   .bpage { padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
   .bpage + .bpage { border-left: 1px solid rgba(58,110,255,0.35); }
   .bslot {
-    flex: none;
+    flex: none; min-width: 84px;
     width: min(160px, calc((100vh - 305px) / 3 * 0.716));
     width: min(160px, calc((100dvh - 305px) / 3 * 0.716));
   }
+  /* カードは常に自然サイズ160pxで組み、scale()で縮小＝どのサイズでも単体カードと同じ顔・崩れない */
+  .bfit { width: 160px; transform-origin: 0 0; }
   /* アルバム行: カード左寄せ+右に概要（縦横共通・v31） */
   .bookwrap { display: flex; align-items: stretch; }
   .bookwrap .bookpages { flex: 1; min-width: 0; }
@@ -597,7 +599,7 @@
     .cardspace { min-height: 0; }
     .cobj { width: calc((100vh - 175px) * 0.716); width: calc((100dvh - 175px) * 0.716); }
     /* 横持ち: 行の高さ=カードの高さに揃うよう概要を間引き、3行が必ず収まる計算に */
-    .bslot { width: calc((100vh - 225px) / 3 * 0.716); width: calc((100dvh - 225px) / 3 * 0.716); min-width: 50px; }
+    .bslot { width: calc((100vh - 225px) / 3 * 0.716); width: calc((100dvh - 225px) / 3 * 0.716); min-width: 62px; }
     .bpage { padding: 6px; gap: 6px; }
     .bsum { gap: 3px; }
     .bsum-t { font-size: 11px; -webkit-line-clamp: 1; }
@@ -2079,16 +2081,31 @@ function viewCards(q) {
           for (var i = 0; i < perSide; i++) {
             var r = slice[s * perSide + i];
             rowsHtml += r
-              ? '<div class="brow" data-id="' + esc(r.id) + '"><div class="bslot">' + cardFaceHTML(r) + '</div>' + rowSummaryHTML(r) + '</div>'
+              ? '<div class="brow" data-id="' + esc(r.id) + '"><div class="bslot"><div class="bfit">' + cardFaceHTML(r) + '</div></div>' + rowSummaryHTML(r) + '</div>'
               : '<div class="brow"><div class="bslot"><div class="bempty">EMPTY SLOT</div></div><div class="bsum bsum-empty">— UNREGISTERED —</div></div>';
           }
           pagesHtml += '<div class="bpage">' + rowsHtml + '</div>';
         }
         bp.innerHTML = pagesHtml;
         hydrateCardImgs(bp);
+        fitCards();
         $('#b-ind', v).innerHTML = 'PAGE <span>' + (page + 1) + '</span> / ' + totalPages + ' ── ' + list.length + ' CARDS';
         history.replaceState(null, '', '#/cards' + (page ? '?p=' + page : ''));
       }
+      /* スロット実幅に合わせてカードを等比縮小（自然サイズ160px基準） */
+      function fitCards() {
+        if (!document.body.contains(bp)) { removeEventListener('resize', onFitRs); return; }
+        [].forEach.call(bp.querySelectorAll('.bslot .bfit'), function (inner) {
+          var w = inner.parentNode.clientWidth;
+          if (!w) return;
+          var s = w / 160;
+          inner.style.transform = 'scale(' + s.toFixed(4) + ')';
+          inner.parentNode.style.height = Math.round(160 / 63 * 88 * s) + 'px';
+        });
+      }
+      var fitRsT = null;
+      function onFitRs() { clearTimeout(fitRsT); fitRsT = setTimeout(fitCards, 120); }
+      addEventListener('resize', onFitRs);
       function goPage(np, dir) {
         np = Math.min(totalPages - 1, Math.max(0, np));
         if (np === page) return;

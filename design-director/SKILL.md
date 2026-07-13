@@ -423,3 +423,9 @@ This skill holds the *judgment*. Keep the three consistent.
   variant.** Layout lesson: in a row of [fixed-ratio card | text summary], the row height is set by
   whichever is taller — landscape overflow was the summary's text stack, so fitting means thinning
   the TEXT (title+numbers only), not the card.
+- **2026-07-13 (v33, closes the small-card saga)** — v32's "same face, just cropped" broke at
+  landscape sizes: full-size fonts poured into a 50-70px slot overflow horizontally. The durable
+  answer is **photographic scaling**: lay the card out at a fixed natural width (160px) and
+  `transform: scale()` it to the measured slot width (.bfit wrapper + JS measure, resize-tracked,
+  self-cleaning listener). Same face at every size, cannot break, no per-size CSS. **Card sizing
+  doctrine, final: never restyle cards per size — scale them.**
