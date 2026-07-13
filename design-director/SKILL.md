@@ -415,3 +415,11 @@ This skill holds the *judgment*. Keep the three consistent.
   disabled when empty) double as decoration AND search path — the best kind of flourish. Landscape
   now matches portrait (single page, smaller cards) — when the author asks to "reduce the difference
   between orientations", unify the STRUCTURE and let only the scale change.
+- **2026-07-13 (v32, revises v31 and the v14 small-card rule)** — Author rejected the reduced-card
+  variant outright ("デフォルメがきつすぎる"): book cards now look IDENTICAL to the single-card view
+  (only the one-liner .cone hidden), and small sizes degrade by bottom-clipping via overflow:hidden
+  instead of a special miniature ruleset. **The v14 "remove info when small" doctrine is superseded
+  for cards: the author prefers one consistent card face at every size, cropped, over a simplified
+  variant.** Layout lesson: in a row of [fixed-ratio card | text summary], the row height is set by
+  whichever is taller — landscape overflow was the summary's text stack, so fitting means thinning
+  the TEXT (title+numbers only), not the card.

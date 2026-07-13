@@ -496,14 +496,8 @@
   .bsum-s b { color: var(--cyan); font-weight: 400; letter-spacing: 2px; }
   .bsum-g { display: flex; flex-wrap: wrap; gap: 4px; }
   .bsum-empty { font-family: var(--mono); font-size: 9px; letter-spacing: 2px; color: rgba(77,125,156,0.4); align-items: center; }
-  /* ブック内カードは簡素表示（ID+画像+題のみ。詳細は右の概要欄が担当） */
-  .bpage .ccard .cone, .bpage .ccard .cstats, .bpage .ccard .cfoot, .bpage .ccard .chead .chip { display: none; }
-  .bpage .ccard { --frame: rgba(122,168,255,0.55); --frame-dim: rgba(58,118,255,0.3); filter: drop-shadow(0 0 6px rgba(58,110,255,0.16)); }
-  .bpage .ccard .chead { font-size: 8px; letter-spacing: 0.5px; padding: 5px 7px 4px; border-bottom-color: rgba(58,110,255,0.18); }
-  .bpage .ccard .cimg { margin: 5px 7px 0; border-color: rgba(58,110,255,0.28); }
-  .bpage .ccard .cbody { padding: 6px 7px 5px; }
-  .bpage .ccard .ctitle { font-size: 10px; font-weight: 400; letter-spacing: 0.2px; }
-  .bpage .ccard .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
+  /* ブック内カードは単体カード画面と同じ見た目（一言メモだけ非表示。小サイズでは下から自然にクリップ） */
+  .bpage .ccard .cone { display: none; }
   .bempty {
     width: 100%; aspect-ratio: 63/88;
     border: 1px dashed rgba(58,110,255,0.25); border-radius: 0;
@@ -602,10 +596,14 @@
     #console { bottom: 0; }
     .cardspace { min-height: 0; }
     .cobj { width: calc((100vh - 175px) * 0.716); width: calc((100dvh - 175px) * 0.716); }
-    .bslot { width: calc((100vh - 245px) / 3 * 0.716); width: calc((100dvh - 245px) / 3 * 0.716); min-width: 54px; }
-    .bpage { padding: 8px 6px; gap: 7px; }
-    .bsum-t { font-size: 11px; -webkit-line-clamp: 1; }
+    /* 横持ち: 行の高さ=カードの高さに揃うよう概要を間引き、3行が必ず収まる計算に */
+    .bslot { width: calc((100vh - 225px) / 3 * 0.716); width: calc((100dvh - 225px) / 3 * 0.716); min-width: 50px; }
+    .bpage { padding: 6px; gap: 6px; }
     .bsum { gap: 3px; }
+    .bsum-t { font-size: 11px; -webkit-line-clamp: 1; }
+    .bsum-m, .bsum-g { display: none; }
+    .booknav { margin-bottom: 6px; }
+    .booknav .btn { padding: 5px 12px; }
     .cobj .cimg .glyph { font-size: 13px; letter-spacing: 1px; text-shadow: 0 0 8px rgba(122,160,255,0.7); }
     .cobj .cback .cbem { font-size: 26px; }
     .cobj .cback .cbt { font-size: 11px; letter-spacing: 2px; }
